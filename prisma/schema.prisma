@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String            @id @default(uuid())
+  email     String            @unique
+  password  String
+  username  String
+  rating    Float?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  profile   UserProfile?
+  donations ProjectDonation[]
+  projects  Project[]
+}
+
+model UserProfile {
+  id        String    @id @default(uuid())
+  bio       String?
+  birthDate DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId    String    @unique
+}
+
+model Project {
+  id           String               @id @default(uuid())
+  title        String
+  description  String
+  imageUrl     String
+  fundingGoal  Float
+  funding      Float                @default(0)
+  rating       Float?
+  objectives   ProjectObjective[]
+  requirements ProjectRequirement[]
+  donations    ProjectDonation[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  deadline     DateTime
+  organizer    User                 @relation(fields: [organizerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organizerId  String
+}
+
+model ProjectObjective {
+  id        String  @id @default(uuid())
+  objective String
+  imageUrl  String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  projectId String
+}
+
+model ProjectRequirement {
+  id          String  @id @default(uuid())
+  requirement String
+  quantity    Int?
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  projectId   String
+}
+
+model ProjectDonation {
+  id        String  @id @default(uuid())
+  amount    Float
+  donator   User    @relation(fields: [donatorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  donatorId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  projectId String
+}
