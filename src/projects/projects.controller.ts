@@ -18,7 +18,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ProjectEntity } from './entities/project.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 
 @Controller('projects')
 @ApiTags('projects')
@@ -45,7 +45,7 @@ export class ProjectsController {
 
   @Patch(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiCreatedResponse({ type: ProjectEntity })
   update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
     return this.projectsService.update(id, updateProjectDto);
@@ -53,7 +53,7 @@ export class ProjectsController {
 
   @Delete(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiOkResponse({ type: ProjectEntity })
   remove(@Param('id') id: string) {
     return this.projectsService.remove(id);

@@ -5,22 +5,32 @@ import { PrismaService } from 'nestjs-prisma';
 import * as bcrypt from 'bcrypt';
 import { CreateUserProfileDto } from './dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
-
-export const roundsOfHashing = 10;
+import { ConfigService } from '@nestjs/config';
+import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService,
+    @InjectFirebaseAdmin() private readonly firebase: FirebaseAdmin,
+  ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, id?: string) {
     const hashedPassword = await bcrypt.hash(
       createUserDto.password,
-      roundsOfHashing,
+      Number(this.configService.get<string>('BCRYPT_ROUNDS_OF_HASHING')),
     );
 
-    createUserDto.password = hashedPassword;
+    const { fromGoogle, ...filteredDto } = createUserDto;
 
-    const user = await this.prisma.user.create({ data: createUserDto });
+    const user = await this.prisma.user.create({
+      data: {
+        id: id ?? undefined,
+        ...filteredDto,
+        password: hashedPassword,
+      },
+    });
 
     const createUserProfileDto: CreateUserProfileDto = {
       bio: null,
@@ -28,6 +38,15 @@ export class UsersService {
     };
 
     await this.createProfile(user.id, createUserProfileDto);
+
+    if (!fromGoogle) {
+      await this.firebase.auth.createUser({
+        uid: user.id,
+        displayName: user.username,
+        email: user.email,
+        password: createUserDto.password,
+      });
+    }
 
     return user;
   }
@@ -44,7 +63,7 @@ export class UsersService {
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(
         updateUserDto.password,
-        roundsOfHashing,
+        Number(this.configService.get<string>('BCRYPT_ROUNDS_OF_HASHING')),
       );
     }
 

@@ -20,10 +20,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UserProfileEntity } from './entities/user.profile.entity';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { User } from 'src/decorators/user.decorator';
+import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 
 @Controller('users')
 @ApiTags('users')
@@ -38,7 +38,7 @@ export class UsersController {
 
   @Get()
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiOkResponse({ type: UserEntity, isArray: true })
   async findAll() {
     const users = await this.usersService.findAll();
@@ -53,7 +53,7 @@ export class UsersController {
 
   @Patch(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiCreatedResponse({ type: UserEntity })
   async update(
     @Param('id') id: string,
@@ -69,7 +69,7 @@ export class UsersController {
 
   @Delete(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiOkResponse({ type: UserEntity })
   async remove(@Param('id') id: string) {
     return new UserEntity(await this.usersService.remove(id));
@@ -83,7 +83,7 @@ export class UsersController {
 
   @Patch('profiles/:id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiCreatedResponse({ type: UserProfileEntity })
   async updateProfile(
     @Param('id') id: string,
