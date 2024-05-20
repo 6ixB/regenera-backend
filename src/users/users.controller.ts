@@ -22,7 +22,7 @@ import {
 import { UserEntity } from './entities/user.entity';
 import { UserProfileEntity } from './entities/user.profile.entity';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
-import { User } from 'src/decorators/user.decorator';
+import { User } from 'src/common/decorators/user.decorator';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 
 @Controller('users')
@@ -43,6 +43,14 @@ export class UsersController {
   async findAll() {
     const users = await this.usersService.findAll();
     return users.map((user) => new UserEntity(user));
+  }
+
+  @Get('me')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  @ApiOkResponse()
+  async me() {
+    return 'Hello from me';
   }
 
   @Get(':id')

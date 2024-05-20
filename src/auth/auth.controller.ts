@@ -20,6 +20,8 @@ import { RefreshTokenGuard } from 'src/common/guards/refreshToken.guard';
 import { AuthEntity } from './entity/auth.entity';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 import { SignInWithGoogleDto } from './dto/signinWithGoogle.dto';
+import { User } from 'src/common/decorators/user.decorator';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -41,7 +43,7 @@ export class AuthController {
       expires: new Date(Date.now() + 30 * 60 * 1000),
     });
 
-    res.json(tokens).status(HttpStatus.CREATED).send();
+    res.status(HttpStatus.CREATED).send();
   }
 
   @Post('signinWithGoogle')
@@ -62,15 +64,15 @@ export class AuthController {
       expires: new Date(Date.now() + 30 * 60 * 1000),
     });
 
-    res.json(tokens).status(HttpStatus.CREATED).send();
+    res.status(HttpStatus.CREATED).send();
   }
 
   @Post('signout')
   @ApiBearerAuth()
   @ApiOkResponse()
   @UseGuards(AccessTokenGuard)
-  signout(@Req() req: Request, @Res() res: Response) {
-    this.authService.signout(req.user['sub']);
+  signout(@User() user: UserEntity, @Res() res: Response) {
+    this.authService.signout(user.id);
     res.clearCookie('accessToken');
     res.clearCookie('refreshToken');
     res.status(HttpStatus.OK).send();
@@ -96,6 +98,6 @@ export class AuthController {
       expires: new Date(Date.now() + 30 * 60 * 1000),
     });
 
-    res.json(tokens).status(HttpStatus.CREATED).send();
+    res.status(HttpStatus.CREATED).send();
   }
 }
