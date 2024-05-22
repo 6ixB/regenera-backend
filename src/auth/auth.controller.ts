@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpStatus,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/signin.dto';
 import {
@@ -15,13 +7,13 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import { RefreshTokenGuard } from 'src/common/guards/refreshToken.guard';
 import { AuthEntity } from './entity/auth.entity';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
-import { SignInWithGoogleDto } from './dto/signinWithGoogle.dto';
 import { User } from 'src/common/decorators/user.decorator';
 import { UserEntity } from 'src/users/entities/user.entity';
+import { SignInWithGoogleDto } from './dto/signinWithGoogle.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -30,74 +22,32 @@ export class AuthController {
 
   @Post('signin')
   @ApiCreatedResponse({ type: AuthEntity })
-  async signin(@Body() { email, password }: SignInDto, @Res() res: Response) {
-    const tokens = await this.authService.signin(email, password);
-
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 5 * 60 * 1000),
-    });
-
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 30 * 60 * 1000),
-    });
-
-    res.status(HttpStatus.CREATED).send();
+  async signin(@Body() { email, password }: SignInDto) {
+    return await this.authService.signin(email, password);
   }
 
-  @Post('signinWithGoogle')
+  @Post('signin/google')
   @ApiCreatedResponse({ type: AuthEntity })
-  async signinWithGoogle(
-    @Body() { email, idToken }: SignInWithGoogleDto,
-    @Res() res: Response,
-  ) {
-    const tokens = await this.authService.signinWithGoogle(email, idToken);
-
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 5 * 60 * 1000),
-    });
-
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 30 * 60 * 1000),
-    });
-
-    res.status(HttpStatus.CREATED).send();
+  async signinWithGoogle(@Body() { idToken }: SignInWithGoogleDto) {
+    return await this.authService.signinWithGoogle(idToken);
   }
 
   @Post('signout')
   @ApiBearerAuth()
   @ApiOkResponse()
   @UseGuards(AccessTokenGuard)
-  signout(@User() user: UserEntity, @Res() res: Response) {
-    this.authService.signout(user.id);
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
-    res.status(HttpStatus.OK).send();
+  signout(@User() user: UserEntity) {
+    return this.authService.signout(user.id);
   }
 
   @Post('refresh')
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: AuthEntity })
   @UseGuards(RefreshTokenGuard)
-  async refreshTokens(@Req() req: Request, @Res() res: Response) {
+  async refreshTokens(@Req() req: Request) {
     const userId = req.user['sub'];
     const refreshToken = req.user['refreshToken'];
 
-    const tokens = await this.authService.refreshTokens(userId, refreshToken);
-
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 5 * 60 * 1000),
-    });
-
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 30 * 60 * 1000),
-    });
-
-    res.status(HttpStatus.CREATED).send();
+    return await this.authService.refreshTokens(userId, refreshToken);
   }
 }

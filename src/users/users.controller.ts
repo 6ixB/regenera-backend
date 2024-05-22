@@ -45,14 +45,6 @@ export class UsersController {
     return users.map((user) => new UserEntity(user));
   }
 
-  @Get('me')
-  @ApiBearerAuth()
-  @UseGuards(AccessTokenGuard)
-  @ApiOkResponse()
-  async me() {
-    return 'Hello from me';
-  }
-
   @Get(':id')
   @ApiOkResponse({ type: UserEntity })
   async findOne(@Param('id') id: string) {

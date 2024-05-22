@@ -17,17 +17,19 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto, id?: string) {
-    const hashedPassword = await bcrypt.hash(
-      createUserDto.password,
-      Number(this.configService.get<string>('BCRYPT_ROUNDS_OF_HASHING')),
-    );
+    let hashedPassword;
 
-    const { fromGoogle, ...filteredDto } = createUserDto;
+    if (createUserDto.password) {
+      hashedPassword = await bcrypt.hash(
+        createUserDto.password,
+        Number(this.configService.get<string>('BCRYPT_ROUNDS_OF_HASHING')),
+      );
+    }
 
     const user = await this.prisma.user.create({
       data: {
-        id: id ?? undefined,
-        ...filteredDto,
+        id,
+        ...createUserDto,
         password: hashedPassword,
       },
     });
@@ -39,15 +41,6 @@ export class UsersService {
 
     await this.createProfile(user.id, createUserProfileDto);
 
-    if (!fromGoogle) {
-      await this.firebase.auth.createUser({
-        uid: user.id,
-        displayName: user.username,
-        email: user.email,
-        password: createUserDto.password,
-      });
-    }
-
     return user;
   }
 
@@ -57,6 +50,10 @@ export class UsersService {
 
   findOne(id: string) {
     return this.prisma.user.findUnique({ where: { id } });
+  }
+
+  findOneByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {

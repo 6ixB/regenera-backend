@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -11,6 +12,12 @@ import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from 'src/users/users.service';
 import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
+import { UserEntity } from 'src/users/entities/user.entity';
+import { instanceToPlain } from 'class-transformer';
+import { OAuth2Client } from 'google-auth-library';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+
+const client = new OAuth2Client();
 
 @Injectable()
 export class AuthService {
@@ -30,7 +37,7 @@ export class AuthService {
         },
         {
           secret: this.configService.get<string>('JWT_ACCESS_SECRET_KEY'),
-          expiresIn: '5m',
+          expiresIn: '5s',
         },
       ),
       this.jwtService.signAsync(
@@ -44,9 +51,16 @@ export class AuthService {
       ),
     ]);
 
+    const currentDate = new Date();
+    const aliveDuration = 5 * 1000;
+    const expiresIn = currentDate.setTime(
+      currentDate.getTime() + aliveDuration,
+    );
+
     return {
       accessToken,
       refreshToken,
+      expiresIn,
     };
   }
 
@@ -96,37 +110,52 @@ export class AuthService {
     const tokens = await this.getTokens(user.id);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
-    return tokens;
+    const userEntity = new UserEntity(user);
+    const plainUserEntity = instanceToPlain(userEntity);
+
+    return {
+      user: plainUserEntity as UserEntity,
+      ...tokens,
+    };
   }
 
-  async signinWithGoogle(email: string, idToken: string): Promise<AuthEntity> {
+  async signinWithGoogle(idToken: string): Promise<AuthEntity> {
+    let payload;
+
     try {
-      const decodedToken = await this.firebase.auth.verifyIdToken(idToken);
+      const ticket = await client.verifyIdToken({
+        idToken: idToken,
+        audience: this.configService.get<string>('AUTH_GOOGLE_ID'),
+      });
 
-      const user = await this.usersService.findOne(decodedToken.uid);
-
-      if (!user) {
-        const createUserDto = {
-          username: (await this.firebase.auth.getUser(decodedToken.uid))
-            .displayName,
-          email: email,
-          password: await bcrypt.hash(
-            email,
-            Number(this.configService.get<string>('BCRYPT_ROUNDS_OF_HASHING')),
-          ),
-          fromGoogle: true,
-        };
-
-        await this.usersService.create(createUserDto, decodedToken.uid);
-      }
-
-      const tokens = await this.getTokens(decodedToken.uid);
-      await this.updateRefreshToken(decodedToken.uid, tokens.refreshToken);
-
-      return tokens;
+      payload = ticket.getPayload();
     } catch (error) {
-      throw new UnauthorizedException('Invalid Google ID Token');
+      throw new BadRequestException('Invalid ID token');
     }
+
+    const { sub: googleId, email, name } = payload;
+
+    let user = await this.usersService.findOneByEmail(email);
+
+    if (!user) {
+      const createUserDto: CreateUserDto = {
+        email,
+        username: name,
+      };
+
+      user = await this.usersService.create(createUserDto, googleId);
+    }
+
+    const tokens = await this.getTokens(user.id);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    const userEntity = new UserEntity(user);
+    const plainUserEntity = instanceToPlain(userEntity);
+
+    return {
+      user: plainUserEntity as UserEntity,
+      ...tokens,
+    };
   }
 
   async signout(userId: string) {
