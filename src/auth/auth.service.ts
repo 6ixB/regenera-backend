@@ -37,7 +37,7 @@ export class AuthService {
         },
         {
           secret: this.configService.get<string>('JWT_ACCESS_SECRET_KEY'),
-          expiresIn: '5s',
+          expiresIn: '5m',
         },
       ),
       this.jwtService.signAsync(
@@ -52,7 +52,7 @@ export class AuthService {
     ]);
 
     const currentDate = new Date();
-    const aliveDuration = 5 * 1000;
+    const aliveDuration = 5 * 60 * 1000;
     const expiresIn = currentDate.setTime(
       currentDate.getTime() + aliveDuration,
     );
