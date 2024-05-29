@@ -6,14 +6,12 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserProfileDto } from './dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { ConfigService } from '@nestjs/config';
-import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
-    @InjectFirebaseAdmin() private readonly firebase: FirebaseAdmin,
   ) {}
 
   async create(createUserDto: CreateUserDto, id?: string) {

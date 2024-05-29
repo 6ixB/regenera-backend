@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -11,11 +12,12 @@ import { AuthEntity } from './entity/auth.entity';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from 'src/users/users.service';
-import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { instanceToPlain } from 'class-transformer';
 import { OAuth2Client } from 'google-auth-library';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 const client = new OAuth2Client();
 
@@ -26,7 +28,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private usersService: UsersService,
-    @InjectFirebaseAdmin() private readonly firebase: FirebaseAdmin,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async getTokens(userId: string) {
@@ -37,7 +39,7 @@ export class AuthService {
         },
         {
           secret: this.configService.get<string>('JWT_ACCESS_SECRET_KEY'),
-          expiresIn: '5m',
+          expiresIn: '1h',
         },
       ),
       this.jwtService.signAsync(
@@ -46,15 +48,22 @@ export class AuthService {
         },
         {
           secret: this.configService.get<string>('JWT_REFRESH_SECRET_KEY'),
-          expiresIn: '30m',
+          expiresIn: '7d',
         },
       ),
     ]);
 
     const currentDate = new Date();
-    const aliveDuration = 5 * 60 * 1000;
+    const accessTokenTimeToLive = 60 * 60 * 1000;
+
     const expiresIn = currentDate.setTime(
-      currentDate.getTime() + aliveDuration,
+      currentDate.getTime() + accessTokenTimeToLive,
+    );
+
+    this.cacheManager.set(
+      `access-token-${userId}`,
+      accessToken,
+      accessTokenTimeToLive,
     );
 
     return {
@@ -159,6 +168,7 @@ export class AuthService {
   }
 
   async signout(userId: string) {
+    this.cacheManager.del(`access-token-${userId}`);
     return this.usersService.update(userId, { refreshToken: null });
   }
 }
