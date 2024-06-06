@@ -9,6 +9,11 @@ import { ConfigService } from '@nestjs/config';
 import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
 import { v4 as uuidv4 } from 'uuid';
 
+// TODO: Fix the firebase admin import such that it detects the service account file
+// and initializes the firebase admin SDK with the service account file,
+// so calling .bucket() will use the default bucket.
+const bucketName = 'regenera-da102.appspot.com';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -65,6 +70,40 @@ export class UsersService {
       );
     }
 
+    if (updateUserDto.image) {
+      const user = await this.findOne(id);
+
+      if (user.imageUrl) {
+        await this.firebase.storage
+          .bucket(bucketName)
+          .file(
+            user.imageUrl.replace(
+              `https://storage.googleapis.com/${bucketName}/`,
+              '',
+            ),
+          )
+          .delete();
+      }
+
+      const fileName = `users/${id}/images/${uuidv4()}.${updateUserDto.image.mimetype.replace('image/', '')}`;
+
+      await this.firebase.storage
+        .bucket(bucketName)
+        .file(fileName)
+        .save(updateUserDto.image.buffer, {});
+
+      const fileRef = this.firebase.storage.bucket(bucketName).file(fileName);
+
+      fileRef.makePublic();
+
+      const imageUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+
+      // Delete the image property from the updateUserDto object
+      // and add imageUrl property to the object
+      delete updateUserDto.image;
+      updateUserDto.imageUrl = imageUrl;
+    }
+
     return this.prisma.user.update({ where: { id }, data: updateUserDto });
   }
 
@@ -88,76 +127,44 @@ export class UsersService {
     });
   }
 
-  updateProfile(id: string, updateUserProfileDto: UpdateUserProfileDto) {
+  async updateProfile(id: string, updateUserProfileDto: UpdateUserProfileDto) {
+    if (updateUserProfileDto.banner) {
+      const userProfile = await this.findOneProfile(id);
+
+      if (userProfile.bannerUrl) {
+        await this.firebase.storage
+          .bucket(bucketName)
+          .file(
+            userProfile.bannerUrl.replace(
+              `https://storage.googleapis.com/${bucketName}/`,
+              '',
+            ),
+          )
+          .delete();
+      }
+
+      const fileName = `users/${id}/banners/${uuidv4()}.${updateUserProfileDto.banner.mimetype.replace('image/', '')}`;
+
+      await this.firebase.storage
+        .bucket(bucketName)
+        .file(fileName)
+        .save(updateUserProfileDto.banner.buffer, {});
+
+      const fileRef = this.firebase.storage.bucket(bucketName).file(fileName);
+
+      fileRef.makePublic();
+
+      const bannerUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+
+      // Delete the banner property from the updateUserDto object
+      // and add bannerUrl property to the object
+      delete updateUserProfileDto.banner;
+      updateUserProfileDto.bannerUrl = bannerUrl;
+    }
+
     return this.prisma.userProfile.update({
       where: { userId: id },
       data: updateUserProfileDto,
     });
-  }
-
-  async uploadProfileImage(id: string, file: Express.Multer.File) {
-    const bucketName = 'regenera-da102.appspot.com';
-
-    const user = await this.findOne(id);
-
-    if (user.imageUrl) {
-      await this.firebase.storage
-        .bucket(bucketName)
-        .file(
-          user.imageUrl.replace(
-            `https://storage.googleapis.com/${bucketName}/`,
-            '',
-          ),
-        )
-        .delete();
-    }
-
-    const fileName = `users/${id}/images/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
-
-    await this.firebase.storage
-      .bucket(bucketName)
-      .file(fileName)
-      .save(file.buffer, {});
-
-    const fileRef = this.firebase.storage.bucket(bucketName).file(fileName);
-
-    fileRef.makePublic();
-
-    const imageUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
-
-    return this.update(id, { imageUrl: imageUrl });
-  }
-
-  async uploadProfileBanner(id: string, file: Express.Multer.File) {
-    const bucketName = 'regenera-da102.appspot.com';
-
-    const userProfile = await this.findOneProfile(id);
-
-    if (userProfile.bannerUrl) {
-      await this.firebase.storage
-        .bucket(bucketName)
-        .file(
-          userProfile.bannerUrl.replace(
-            `https://storage.googleapis.com/${bucketName}/`,
-            '',
-          ),
-        )
-        .delete();
-    }
-
-    const fileName = `users/${id}/banners/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
-
-    await this.firebase.storage
-      .bucket(bucketName)
-      .file(fileName)
-      .save(file.buffer, {});
-
-    const fileRef = this.firebase.storage.bucket(bucketName).file(fileName);
-
-    fileRef.makePublic();
-
-    const imageUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
-
-    return this.updateProfile(id, { bannerUrl: imageUrl });
   }
 }
