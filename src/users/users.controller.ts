@@ -80,6 +80,7 @@ export class UsersController {
           maxSize: 5 * 1024 * 1024,
         })
         .build({
+          fileIsRequired: false,
           errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
         }),
     )
@@ -89,7 +90,9 @@ export class UsersController {
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
     }
 
-    updateUserDto.image = image;
+    if (image) {
+      updateUserDto.image = image;
+    }
 
     return new UserEntity(await this.usersService.update(id, updateUserDto));
   }
@@ -136,6 +139,7 @@ export class UsersController {
           maxSize: 5 * 1024 * 1024,
         })
         .build({
+          fileIsRequired: false,
           errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
         }),
     )
@@ -145,7 +149,9 @@ export class UsersController {
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
     }
 
-    updateUserProfileDto.banner = banner;
+    if (banner) {
+      updateUserProfileDto.banner = banner;
+    }
 
     return new UserProfileEntity(
       await this.usersService.updateProfile(id, updateUserProfileDto),
