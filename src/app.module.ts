@@ -16,7 +16,7 @@ import { CacheModule } from '@nestjs/cache-manager';
       isGlobal: true,
     }),
     FirebaseModule.forRoot({
-      googleApplicationCredential: 'serviceAccountKey.json',
+      googleApplicationCredential: './serviceAccountKey.json',
     }),
     UsersModule,
     AuthModule,

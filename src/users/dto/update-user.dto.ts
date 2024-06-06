@@ -6,5 +6,8 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   rating?: number | null;
 
   @ApiProperty({ type: () => String, required: false, nullable: true })
+  imageUrl?: string | null;
+
+  @ApiProperty({ type: () => String, required: false, nullable: true })
   refreshToken?: string | null;
 }

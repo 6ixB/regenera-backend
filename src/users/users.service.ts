@@ -6,12 +6,15 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserProfileDto } from './dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { ConfigService } from '@nestjs/config';
+import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    @InjectFirebaseAdmin() private readonly firebase: FirebaseAdmin,
   ) {}
 
   async create(createUserDto: CreateUserDto, id?: string) {
@@ -90,5 +93,71 @@ export class UsersService {
       where: { userId: id },
       data: updateUserProfileDto,
     });
+  }
+
+  async uploadProfileImage(id: string, file: Express.Multer.File) {
+    const bucketName = 'regenera-da102.appspot.com';
+
+    const user = await this.findOne(id);
+
+    if (user.imageUrl) {
+      await this.firebase.storage
+        .bucket(bucketName)
+        .file(
+          user.imageUrl.replace(
+            `https://storage.googleapis.com/${bucketName}/`,
+            '',
+          ),
+        )
+        .delete();
+    }
+
+    const fileName = `users/${id}/images/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
+
+    await this.firebase.storage
+      .bucket(bucketName)
+      .file(fileName)
+      .save(file.buffer, {});
+
+    const fileRef = this.firebase.storage.bucket(bucketName).file(fileName);
+
+    fileRef.makePublic();
+
+    const imageUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+
+    return this.update(id, { imageUrl: imageUrl });
+  }
+
+  async uploadProfileBanner(id: string, file: Express.Multer.File) {
+    const bucketName = 'regenera-da102.appspot.com';
+
+    const userProfile = await this.findOneProfile(id);
+
+    if (userProfile.bannerUrl) {
+      await this.firebase.storage
+        .bucket(bucketName)
+        .file(
+          userProfile.bannerUrl.replace(
+            `https://storage.googleapis.com/${bucketName}/`,
+            '',
+          ),
+        )
+        .delete();
+    }
+
+    const fileName = `users/${id}/banners/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
+
+    await this.firebase.storage
+      .bucket(bucketName)
+      .file(fileName)
+      .save(file.buffer, {});
+
+    const fileRef = this.firebase.storage.bucket(bucketName).file(fileName);
+
+    fileRef.makePublic();
+
+    const imageUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+
+    return this.updateProfile(id, { bannerUrl: imageUrl });
   }
 }

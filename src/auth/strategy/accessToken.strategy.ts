@@ -1,5 +1,10 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Cache } from 'cache-manager';
@@ -38,7 +43,10 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     );
     const valid = cachedAccessToken === accessToken;
 
+    Logger.error(`Cached access token: ${cachedAccessToken}`);
+
     if (!valid) {
+      Logger.error('Invalid access token');
       throw new UnauthorizedException();
     }
 

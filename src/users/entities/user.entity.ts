@@ -19,6 +19,9 @@ export class UserEntity implements User {
   @ApiProperty({ required: false, nullable: true })
   rating: number | null;
 
+  @ApiProperty({ required: false, nullable: true })
+  imageUrl: string | null;
+
   @ApiProperty()
   createdAt: Date;
 

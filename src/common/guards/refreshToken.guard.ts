@@ -1,7 +1,6 @@
 import {
   ExecutionContext,
   Injectable,
-  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -44,8 +43,6 @@ export class RefreshTokenGuard extends AuthGuard('jwt-refresh') {
 
   handleRequest(err: any, user: any, info: any, context: ExecutionContext) {
     const secretKey = this.configService.get<string>('JWT_REFRESH_SECRET_KEY');
-
-    Logger.log(secretKey);
 
     const request = context.switchToHttp().getRequest();
     const authorizationHeader = request.headers['authorization'];

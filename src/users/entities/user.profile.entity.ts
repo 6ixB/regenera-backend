@@ -21,6 +21,27 @@ export class UserProfileEntity implements UserProfile {
   @ApiProperty({ required: false, nullable: true })
   birthDate: Date;
 
+  @ApiProperty({ required: false, nullable: true })
+  address: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  bannerUrl: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  phone: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  instagramUrl: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  facebookUrl: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  twitterUrl: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  linkedinUrl: string;
+
   @Exclude()
   userId: string;
 

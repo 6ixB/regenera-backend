@@ -15,4 +15,46 @@ export class CreateUserProfileDto {
   @IsOptional()
   @ApiProperty()
   birthDate?: Date;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  @ApiProperty()
+  address?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  @ApiProperty()
+  bannerUrl?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  @ApiProperty()
+  phone?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  @ApiProperty()
+  instagramUrl?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  @ApiProperty()
+  twitterUrl?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  @ApiProperty()
+  facebookUrl?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  @ApiProperty()
+  linkedinUrl?: string;
 }
