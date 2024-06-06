@@ -7,9 +7,9 @@ import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
 @Injectable()
 export class ProjectsService {
   constructor(
-    private prisma: PrismaService
+    private prisma: PrismaService,
     @InjectFirebaseAdmin() private readonly firebase: FirebaseAdmin,
-  ) { }
+  ) {}
 
   create(createProjectDto: CreateProjectDto) {
     const projectData = {
@@ -28,7 +28,7 @@ export class ProjectsService {
     return this.prisma.project.findUnique({ where: { id } });
   }
 
-  update(id: string, updateProjectDto: UpdateProjectDto) {
+  async update(id: string, updateProjectDto: UpdateProjectDto) {
     return this.prisma.project.update({
       where: { id },
       data: updateProjectDto,
@@ -56,7 +56,7 @@ export class ProjectsService {
         .delete();
     }
 
-    const fileName = `users/${id}/images/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
+    const fileName = `projects/${id}/images/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
 
     await this.firebase.storage
       .bucket(bucketName)
@@ -69,6 +69,39 @@ export class ProjectsService {
 
     const imageUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
 
-    return this.update(id, { imageUrl: imageUrl });
+    return this.update(id, { image: imageUrl });
+  }
+
+  async uploadProjectObjectiveImage(id: string, file: Express.Multer.File) {
+    const bucketName = 'regenera-da102.appspot.com';
+
+    const user = await this.findOne(id);
+
+    if (user.imageUrl) {
+      await this.firebase.storage
+        .bucket(bucketName)
+        .file(
+          user.imageUrl.replace(
+            `https://storage.googleapis.com/${bucketName}/`,
+            '',
+          ),
+        )
+        .delete();
+    }
+
+    const fileName = `projects/${id}/objectives/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
+
+    await this.firebase.storage
+      .bucket(bucketName)
+      .file(fileName)
+      .save(file.buffer, {});
+
+    const fileRef = this.firebase.storage.bucket(bucketName).file(fileName);
+
+    fileRef.makePublic();
+
+    const imageUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+
+    return this.update(id, { image: imageUrl });
   }
 }
