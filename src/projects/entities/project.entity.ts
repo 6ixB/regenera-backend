@@ -16,6 +16,9 @@ export class ProjectEntity implements Project {
   description: string;
 
   @ApiProperty()
+  address: string;
+
+  @ApiProperty()
   imageUrl: string;
 
   @ApiProperty()

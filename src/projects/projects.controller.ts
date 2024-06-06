@@ -7,28 +7,55 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipeBuilder,
+  HttpStatus,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { ProjectEntity } from './entities/project.entity';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('projects')
 @ApiTags('projects')
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(private readonly projectsService: ProjectsService) { }
 
   @Post()
+  @UseInterceptors(FileInterceptor('image'))
   @ApiCreatedResponse({ type: ProjectEntity })
-  create(@Body() createProjectDto: CreateProjectDto) {
-    return this.projectsService.create(createProjectDto);
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: CreateProjectDto,
+  })
+  async createProjectImage(
+    @Body createProjectDto: CreateProjectDto,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: '.(png|jpeg|jpg)',
+        })
+        .addMaxSizeValidator({
+          maxSize: 5 * 1024 * 1024,
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+      )
+      image: Express.Multer.File
+  ){
+    
   }
 
   @Get()

@@ -2,10 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { PrismaService } from 'nestjs-prisma';
+import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
 
 @Injectable()
 export class ProjectsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService
+    @InjectFirebaseAdmin() private readonly firebase: FirebaseAdmin,
+  ) { }
 
   create(createProjectDto: CreateProjectDto) {
     const projectData = {
@@ -33,5 +37,38 @@ export class ProjectsService {
 
   remove(id: string) {
     return this.prisma.project.delete({ where: { id } });
+  }
+
+  async uploadProjectImage(id: string, file: Express.Multer.File) {
+    const bucketName = 'regenera-da102.appspot.com';
+
+    const user = await this.findOne(id);
+
+    if (user.imageUrl) {
+      await this.firebase.storage
+        .bucket(bucketName)
+        .file(
+          user.imageUrl.replace(
+            `https://storage.googleapis.com/${bucketName}/`,
+            '',
+          ),
+        )
+        .delete();
+    }
+
+    const fileName = `users/${id}/images/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
+
+    await this.firebase.storage
+      .bucket(bucketName)
+      .file(fileName)
+      .save(file.buffer, {});
+
+    const fileRef = this.firebase.storage.bucket(bucketName).file(fileName);
+
+    fileRef.makePublic();
+
+    const imageUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+
+    return this.update(id, { imageUrl: imageUrl });
   }
 }

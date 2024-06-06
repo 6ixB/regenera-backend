@@ -1,19 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsDate,
   IsNotEmpty,
   IsNumber,
   IsString,
   IsUUID,
   Min,
+  ValidateNested,
 } from 'class-validator';
+import { ProjectObjectiveDto } from './project-objective.dto';
+import { ProjectRequirementDto } from './project-requirement.dto';
 
 export class CreateProjectDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   title: string;
+
+  @ApiProperty({ type: 'string', format: 'binary' })
+  @IsNotEmpty()
+  image: any;
 
   @ApiProperty()
   @IsString()
@@ -23,7 +31,7 @@ export class CreateProjectDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  imageUrl: string;
+  address: string;
 
   @ApiProperty()
   @IsNumber()
@@ -41,4 +49,16 @@ export class CreateProjectDto {
   @IsUUID()
   @IsNotEmpty()
   organizerId: string;
+
+  @ApiProperty({ type: [ProjectObjectiveDto] })
+  @ValidateNested({ each: true })
+  @Type(() => ProjectObjectiveDto)
+  @IsArray()
+  objectives: ProjectObjectiveDto[];
+
+  @ApiProperty({ type: [ProjectRequirementDto] })
+  @ValidateNested({ each: true })
+  @Type(() => ProjectRequirementDto)
+  @IsArray()
+  requirements: ProjectRequirementDto[];
 }
