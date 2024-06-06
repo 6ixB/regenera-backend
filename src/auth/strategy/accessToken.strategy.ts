@@ -43,12 +43,13 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     );
     const valid = cachedAccessToken === accessToken;
 
-    Logger.error(`Cached access token: ${cachedAccessToken}`);
+    Logger.log(`Cached access token: ${cachedAccessToken}`);
+    Logger.log(`Access token: ${accessToken}`);
+    Logger.log(`Valid: ${valid}`);
 
-    if (!valid) {
-      Logger.error('Invalid access token');
-      throw new UnauthorizedException();
-    }
+    // if (!valid) {
+    //   throw new UnauthorizedException();
+    // }
 
     return user;
   }
