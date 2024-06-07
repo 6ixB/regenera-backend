@@ -1,12 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { TransformEmptyStringToNull } from 'src/common/transformers/empty-string-to-null.transformer';
 
 export class CreateUserProfileDto {
   @Type(() => String)
   @IsString()
   @IsNotEmpty()
   @IsOptional()
+  @TransformEmptyStringToNull()
   @ApiProperty({ type: () => String, required: false, nullable: true })
   bio?: string | null;
 
@@ -14,6 +16,7 @@ export class CreateUserProfileDto {
   @IsDate()
   @IsNotEmpty()
   @IsOptional()
+  @TransformEmptyStringToNull()
   @ApiProperty({ type: () => Date, required: false, nullable: true })
   birthDate?: Date | null;
 
@@ -21,12 +24,15 @@ export class CreateUserProfileDto {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
+  @TransformEmptyStringToNull()
   @ApiProperty({ type: () => String, required: false, nullable: true })
   address?: string | null;
 
+  @Type(() => String)
   @IsString()
   @IsNotEmpty()
   @IsOptional()
+  @TransformEmptyStringToNull()
   @ApiProperty({
     type: 'string',
     format: 'binary',
@@ -34,12 +40,19 @@ export class CreateUserProfileDto {
     nullable: true,
   })
   banner?: any | null;
+
+  @Type(() => String)
+  @IsNotEmpty()
+  @IsOptional()
+  @TransformEmptyStringToNull()
+  @ApiProperty({ type: () => String, required: false, nullable: true })
   bannerUrl?: string | null;
 
   @Type(() => String)
   @IsString()
   @IsNotEmpty()
   @IsOptional()
+  @TransformEmptyStringToNull()
   @ApiProperty({ type: () => String, required: false, nullable: true })
   phone?: string | null;
 
@@ -47,6 +60,7 @@ export class CreateUserProfileDto {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
+  @TransformEmptyStringToNull()
   @ApiProperty({ type: () => String, required: false, nullable: true })
   instagramUrl?: string | null;
 
@@ -54,6 +68,7 @@ export class CreateUserProfileDto {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
+  @TransformEmptyStringToNull()
   @ApiProperty({ type: () => String, required: false, nullable: true })
   twitterUrl?: string | null;
 
@@ -61,6 +76,7 @@ export class CreateUserProfileDto {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
+  @TransformEmptyStringToNull()
   @ApiProperty({ type: () => String, required: false, nullable: true })
   facebookUrl?: string | null;
 
@@ -68,6 +84,7 @@ export class CreateUserProfileDto {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
+  @TransformEmptyStringToNull()
   @ApiProperty({ type: () => String, required: false, nullable: true })
   linkedinUrl?: string | null;
 }
