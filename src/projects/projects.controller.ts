@@ -40,7 +40,7 @@ export class ProjectsController {
     type: CreateProjectDto,
   })
   async createProjectImage(
-    @Body createProjectDto: CreateProjectDto,
+    @Body() createProjectDto: CreateProjectDto,
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addFileTypeValidator({
@@ -52,10 +52,11 @@ export class ProjectsController {
         .build({
           errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
         }),
-      )
-      image: Express.Multer.File
+    )
+    image: Express.Multer.File,
   ){
-    
+    createProjectDto.image = image;
+    this.projectsService.create(createProjectDto);
   }
 
   @Get()

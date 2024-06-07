@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
+  ArrayMinSize,
   IsArray,
   IsDate,
   IsNotEmpty,
@@ -54,11 +55,13 @@ export class CreateProjectDto {
   @ValidateNested({ each: true })
   @Type(() => ProjectObjectiveDto)
   @IsArray()
+  @ArrayMinSize(1)
   objectives: ProjectObjectiveDto[];
 
   @ApiProperty({ type: [ProjectRequirementDto] })
   @ValidateNested({ each: true })
   @Type(() => ProjectRequirementDto)
   @IsArray()
+  @ArrayMinSize(1)
   requirements: ProjectRequirementDto[];
 }

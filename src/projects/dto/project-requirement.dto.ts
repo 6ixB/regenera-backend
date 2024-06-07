@@ -9,7 +9,7 @@ import {
 export class ProjectRequirementDto{
     
     @ApiProperty()
-    @IsString
+    @IsString()
     @IsNotEmpty()
     item: string
 

@@ -3,21 +3,56 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { PrismaService } from 'nestjs-prisma';
 import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     private prisma: PrismaService,
     @InjectFirebaseAdmin() private readonly firebase: FirebaseAdmin,
-  ) {}
+  ) { }
 
-  create(createProjectDto: CreateProjectDto) {
+  async create(createProjectDto: CreateProjectDto) {
+    const projectId = uuidv4();
+    const imageUrl = this.uploadProjectImage(projectId, createProjectDto.image);
+    const objectiveImagesUrl = await Promise.all(
+      createProjectDto.objectives.map(async (objective) => {
+        if (objective.image) {
+          return this.uploadProjectObjectiveImage(projectId, objective.image);
+        }
+        return null;
+      }),
+    );
+
+    createProjectDto.image = imageUrl;
+
+    createProjectDto.objectives.map((objective, idx) => {
+      objective.image = objectiveImagesUrl[idx];
+    });
+
     const projectData = {
+      id: projectId,
       ...createProjectDto,
       funding: 0,
       rating: 0,
+      objectives: {
+        create: createProjectDto.objectives,
+      },
+      requirement: {
+        create: createProjectDto.requirements,
+      },
+      organizerId: createProjectDto.organizerId,
     };
-    return this.prisma.project.create({ data: projectData });
+
+    return this.prisma.project.create({
+      data: {
+        id: projectId,
+        ...createProjectDto,
+        funding: 0,
+        rating: 0,
+        organizerId: createProjectDto.organizerId,
+      },
+    });
   }
 
   findAll() {
