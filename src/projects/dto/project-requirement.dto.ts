@@ -11,7 +11,7 @@ export class ProjectRequirementDto{
     @ApiProperty()
     @IsString()
     @IsNotEmpty()
-    item: string
+    requirement: string
 
     @ApiProperty()
     @IsNumber()

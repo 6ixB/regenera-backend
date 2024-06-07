@@ -11,6 +11,7 @@ import {
   UploadedFile,
   ParseFilePipeBuilder,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -30,7 +31,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('projects')
 @ApiTags('projects')
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) { }
+  constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('image'))
@@ -54,7 +55,11 @@ export class ProjectsController {
         }),
     )
     image: Express.Multer.File,
-  ){
+  ) {
+    // Logger.warn(createProjectDto);
+
+    Logger.log(image);
+
     createProjectDto.image = image;
     this.projectsService.create(createProjectDto);
   }

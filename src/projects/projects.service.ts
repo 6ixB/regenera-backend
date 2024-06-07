@@ -10,7 +10,7 @@ export class ProjectsService {
   constructor(
     private prisma: PrismaService,
     @InjectFirebaseAdmin() private readonly firebase: FirebaseAdmin,
-  ) { }
+  ) {}
 
   async create(createProjectDto: CreateProjectDto) {
     const projectId = uuidv4();
@@ -30,27 +30,31 @@ export class ProjectsService {
       objective.image = objectiveImagesUrl[idx];
     });
 
-    const projectData = {
-      id: projectId,
-      ...createProjectDto,
-      funding: 0,
-      rating: 0,
-      objectives: {
-        create: createProjectDto.objectives,
-      },
-      requirement: {
-        create: createProjectDto.requirements,
-      },
-      organizerId: createProjectDto.organizerId,
-    };
-
     return this.prisma.project.create({
       data: {
         id: projectId,
-        ...createProjectDto,
+        title: createProjectDto.title,
+        description: createProjectDto.description,
+        imageUrl: createProjectDto.image,
+        fundingGoal: createProjectDto.fundingGoal,
         funding: 0,
         rating: 0,
-        organizerId: createProjectDto.organizerId,
+        deadline: createProjectDto.deadline,
+        organizer: {
+          connect: { id: createProjectDto.organizerId },
+        },
+        objectives: {
+          create: createProjectDto.objectives.map((objective) => ({
+            objective: objective.objective,
+            imageUrl: objective.image,
+          })),
+        },
+        requirements: {
+          create: createProjectDto.requirements.map((requirement) => ({
+            requirement: requirement.requirement,
+            quantity: requirement.quantity,
+          })),
+        },
       },
     });
   }
@@ -64,10 +68,11 @@ export class ProjectsService {
   }
 
   async update(id: string, updateProjectDto: UpdateProjectDto) {
-    return this.prisma.project.update({
-      where: { id },
-      data: updateProjectDto,
-    });
+    // return this.prisma.project.update({
+    //   where: { id },
+    //   data: updateProjectDto,
+    // });
+    return { id, updateProjectDto };
   }
 
   remove(id: string) {

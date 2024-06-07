@@ -14,5 +14,5 @@ export class ProjectObjectiveDto{
     @ApiProperty()
     @IsString()
     @IsNotEmpty()
-    description: string
+    objective: string
 }

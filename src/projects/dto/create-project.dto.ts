@@ -7,7 +7,6 @@ import {
   IsNotEmpty,
   IsNumber,
   IsString,
-  IsUUID,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -24,6 +23,7 @@ export class CreateProjectDto {
   @IsNotEmpty()
   image: any;
 
+  @Type(() => String)
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -34,6 +34,7 @@ export class CreateProjectDto {
   @IsNotEmpty()
   address: string;
 
+  @Type(() => Number)
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
@@ -46,8 +47,9 @@ export class CreateProjectDto {
   @IsNotEmpty()
   deadline: Date;
 
+  @Type(() => String)
   @ApiProperty()
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
   organizerId: string;
 
