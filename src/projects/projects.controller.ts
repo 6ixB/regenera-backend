@@ -52,15 +52,10 @@ export class ProjectsController {
     files: {
       image?: Express.Multer.File[];
       objectiveImages?: Express.Multer.File[];
-    }, // Update this line
+    },
   ) {
-    Logger.log('Descriptions: ', createProjectDto.objectiveImages);
-
     createProjectDto.image = files.image?.[0];
     createProjectDto.objectiveImages = files.objectiveImages;
-    // createProjectDto.objectives.forEach((objective, index) => {
-    //   objective.objectiveImage = files.objectiveImages?.[index];
-    // });
 
     const project = await this.projectsService.create(createProjectDto);
     project.organizer = new UserEntity(project.organizer);
