@@ -8,7 +8,6 @@ import {
   Delete,
   UseGuards,
   UseInterceptors,
-  Logger,
   ValidationPipe,
   UploadedFiles,
 } from '@nestjs/common';

@@ -3,13 +3,21 @@ import { plainToInstance, Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsDate,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   Min,
   ValidateNested,
 } from 'class-validator';
 import { ProjectRequirementDto } from './project-requirement.dto';
+
+export enum ProjectPhaseEnum {
+  DONATING = 'DONATING',
+  VOLUNTEERING = 'VOLUNTEERING',
+  COMPLETED = 'COMPLETED',
+}
 
 export class CreateProjectDto {
   @ApiProperty({ example: 'Community Park Renovation' })
@@ -46,38 +54,18 @@ export class CreateProjectDto {
   @IsNotEmpty()
   deadline: Date;
 
+  @ApiProperty({ enum: ProjectPhaseEnum, enumName: 'ProjectPhase' })
+  @IsOptional()
+  @IsEnum(ProjectPhaseEnum, {
+    message: 'phase must be one of: DONATING, VOLUNTEERING, COMPLETED',
+  })
+  phase?: ProjectPhaseEnum;
+
   @Type(() => String)
   @ApiProperty({ example: 'organizer123' })
   @IsString()
   @IsNotEmpty()
   organizerId: string;
-
-  // @ApiProperty({
-  //   type: [ProjectObjectiveDto],
-  //   example: [
-  //     {
-  //       image: 'kakek_dewa.jpg',
-  //       objective: 'walls',
-  //     },
-  //     {
-  //       image: 'kakek_dewa.jpg',
-  //       objective: 'walls',
-  //     },
-  //   ],
-  // })
-  // @IsArray()
-  // @ValidateNested({ each: true })
-  // @Type(() => ProjectObjectiveDto)
-  // @Transform(({ value }) => {
-  //   Logger.log('objectives: ', value)
-  //   if (typeof value === 'string') {
-  //     return JSON.parse(value).map((item: any) =>
-  //       plainToInstance(ProjectObjectiveDto, item),
-  //     );
-  //   }
-  //   return value;
-  // })
-  // objectives: ProjectObjectiveDto[];
 
   @ApiProperty({ type: 'string', format: 'binary', isArray: true })
   objectiveImages: any;

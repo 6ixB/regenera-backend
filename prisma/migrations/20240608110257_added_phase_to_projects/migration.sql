@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Project" ADD COLUMN     "phase" TEXT NOT NULL DEFAULT 'DONATING';

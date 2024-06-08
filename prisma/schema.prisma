@@ -61,6 +61,7 @@ model Project {
   fundingGoal  Float
   funding      Float                @default(0)
   rating       Float?
+  phase        String               @default("DONATING")
   objectives   ProjectObjective[]
   requirements ProjectRequirement[]
   donations    ProjectDonation[]
