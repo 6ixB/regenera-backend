@@ -5,6 +5,8 @@ import { PrismaService } from 'nestjs-prisma';
 import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
 import { v4 as uuidv4 } from 'uuid';
 import { ProjectObjectiveDto } from './dto/project-objective.dto';
+import { UserEntity } from 'src/users/entities/user.entity';
+import { connect } from 'http2';
 
 @Injectable()
 export class ProjectsService {
@@ -70,8 +72,22 @@ export class ProjectsService {
       where: { id },
       include: {
         organizer: true,
-        objectives: true,
-        requirements: true,
+        objectives: {
+          select: {
+            id: true,
+            imageUrl: true,
+            objective: true,
+            projectId: false,
+          },
+        },
+        requirements: {
+          select: {
+            id: true,
+            requirement: true,
+            quantity: true,
+            projectId: false,
+          },
+        },
         donations: true,
       },
     });
@@ -84,11 +100,43 @@ export class ProjectsService {
   }
 
   async update(id: string, updateProjectDto: UpdateProjectDto) {
-    // return this.prisma.project.update({
-    //   where: { id },
-    //   data: updateProjectDto,
-    // });
-    return { id, updateProjectDto };
+    const { volunteerId, donation, ...projectData } = updateProjectDto;
+
+    if (volunteerId) {
+      const existingVolunteer = await this.prisma.projectVolunteer.findFirst({
+        where: {
+          AND: [{ projectId: id }, { volunteerId: volunteerId }],
+        },
+      });
+
+      if (!existingVolunteer) {
+        return this.prisma.projectVolunteer.create({
+          data: { projectId: id, volunteerId: volunteerId },
+        });
+      }
+    }
+    const existingProject = await this.findOne(id);
+
+    const requirementIds = existingProject.requirements.map((requirement) => ({
+      id: requirement.id,
+    }));
+
+    return this.prisma.project.update({
+      where: { id },
+      data: {
+        ...projectData,
+        requirements: { connect: requirementIds },
+        donations: {
+          connectOrCreate: [
+            {
+              where: { id: donation.donatorId }, // Provide the where clause
+              create: donation, // Provide data to create a new volunteer if needed
+            },
+          ],
+        },
+      },
+      include: { donations: true, volunteers: true },
+    });
   }
 
   remove(id: string) {
