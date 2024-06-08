@@ -28,9 +28,6 @@ export class ProjectsService {
       }),
     );
 
-    // Logger.log('image: ' + imageUrl);
-    Logger.log('objective images: ' + objectiveImageUrls);
-
     const objectives: ProjectObjectiveDto[] = objectiveImageUrls.map(
       (url, idx) => ({
         imageUrl: url,
