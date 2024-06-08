@@ -33,6 +33,9 @@ export class ProjectEntity implements Project {
   rating: number;
 
   @ApiProperty()
+  phase: string;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

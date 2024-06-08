@@ -18,10 +18,3 @@ export class ProjectRequirementDto {
   @IsNotEmpty()
   quantity: number;
 }
-
-export class ProjectRequirementArrayDto {
-  @ApiProperty({ type: [ProjectRequirementDto] })
-  @ValidateNested({ each: true })
-  @Type(() => ProjectRequirementDto)
-  requirements: ProjectRequirementDto[];
-}

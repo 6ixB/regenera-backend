@@ -13,10 +13,3 @@ export class ProjectObjectiveDto {
   @IsNotEmpty()
   objective: string;
 }
-
-export class ProjectObjectiveArrayDto {
-  @ApiProperty({ type: [ProjectObjectiveDto] })
-  @ValidateNested({ each: true })
-  @Type(() => ProjectObjectiveDto)
-  objectives: ProjectObjectiveDto[];
-}
