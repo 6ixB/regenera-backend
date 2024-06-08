@@ -8,10 +8,9 @@ import {
   Delete,
   UseGuards,
   UseInterceptors,
-  UploadedFile,
-  ParseFilePipeBuilder,
-  HttpStatus,
   Logger,
+  ValidationPipe,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -26,7 +25,8 @@ import {
 } from '@nestjs/swagger';
 import { ProjectEntity } from './entities/project.entity';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 @Controller('projects')
 @ApiTags('projects')
@@ -34,46 +34,64 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image', maxCount: 1 },
+      { name: 'objectiveImages' },
+    ]),
+  )
   @ApiCreatedResponse({ type: ProjectEntity })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     type: CreateProjectDto,
   })
   async createProjectImage(
-    @Body() createProjectDto: CreateProjectDto,
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({
-          fileType: '.(png|jpeg|jpg)',
-        })
-        .addMaxSizeValidator({
-          maxSize: 5 * 1024 * 1024,
-        })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-        }),
-    )
-    image: Express.Multer.File,
+    @Body(new ValidationPipe({ transform: true }))
+    createProjectDto: CreateProjectDto,
+    @UploadedFiles()
+    files: {
+      image?: Express.Multer.File[];
+      objectiveImages?: Express.Multer.File[];
+    }, // Update this line
   ) {
-    // Logger.warn(createProjectDto);
+    Logger.log('Descriptions: ', createProjectDto.objectiveImages);
 
-    Logger.log(image);
+    createProjectDto.image = files.image?.[0];
+    createProjectDto.objectiveImages = files.objectiveImages;
+    // createProjectDto.objectives.forEach((objective, index) => {
+    //   objective.objectiveImage = files.objectiveImages?.[index];
+    // });
 
-    createProjectDto.image = image;
-    this.projectsService.create(createProjectDto);
+    const project = await this.projectsService.create(createProjectDto);
+    project.organizer = new UserEntity(project.organizer);
+
+    return new ProjectEntity(project);
   }
 
   @Get()
   @ApiOkResponse({ type: ProjectEntity, isArray: true })
-  findAll() {
-    return this.projectsService.findAll();
+  async findAll() {
+    const projects = await this.projectsService.findAll();
+    projects.map((project) => {
+      project.organizer = new UserEntity(project.organizer);
+    });
+
+    return projects;
   }
 
   @Get(':id')
   @ApiOkResponse({ type: ProjectEntity })
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
+    const project = await this.projectsService.findOne(id);
+    project.organizer = new UserEntity(project.organizer);
+
     return this.projectsService.findOne(id);
+  }
+
+  @Get('organizer/:id')
+  @ApiOkResponse({ type: ProjectEntity })
+  findOrganizerProjects(@Param('id') id: string) {
+    return this.projectsService.findOrganizerProjects(id);
   }
 
   @Patch(':id')

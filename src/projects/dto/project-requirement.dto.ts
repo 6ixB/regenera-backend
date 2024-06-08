@@ -3,18 +3,25 @@ import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
-  IsNumber
+  IsNumber,
+  ValidateNested,
 } from 'class-validator';
 
-export class ProjectRequirementDto{
-    
-    @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
-    requirement: string
+export class ProjectRequirementDto {
+  @ApiProperty({ example: 'Chairs' })
+  @IsString()
+  @IsNotEmpty()
+  requirement: string;
 
-    @ApiProperty()
-    @IsNumber()
-    @IsNotEmpty()
-    quantity: number
+  @ApiProperty({ example: 50 })
+  @IsNumber()
+  @IsNotEmpty()
+  quantity: number;
+}
+
+export class ProjectRequirementArrayDto {
+  @ApiProperty({ type: [ProjectRequirementDto] })
+  @ValidateNested({ each: true })
+  @Type(() => ProjectRequirementDto)
+  requirements: ProjectRequirementDto[];
 }

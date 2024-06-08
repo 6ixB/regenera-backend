@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { PrismaService } from 'nestjs-prisma';
 import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
 import { v4 as uuidv4 } from 'uuid';
+import { ProjectObjectiveDto } from './dto/project-objective.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -14,21 +15,28 @@ export class ProjectsService {
 
   async create(createProjectDto: CreateProjectDto) {
     const projectId = uuidv4();
-    const imageUrl = this.uploadProjectImage(projectId, createProjectDto.image);
-    const objectiveImagesUrl = await Promise.all(
-      createProjectDto.objectives.map(async (objective) => {
-        if (objective.image) {
-          return this.uploadProjectObjectiveImage(projectId, objective.image);
-        }
-        return null;
-      }),
+    const imageUrl = await this.uploadProjectImage(
+      projectId,
+      createProjectDto.image,
     );
 
     createProjectDto.image = imageUrl;
 
-    createProjectDto.objectives.map((objective, idx) => {
-      objective.image = objectiveImagesUrl[idx];
-    });
+    const objectiveImageUrls = await Promise.all(
+      createProjectDto.objectiveImages.map((image) => {
+        return this.uploadProjectObjectiveImage(projectId, image);
+      }),
+    );
+
+    // Logger.log('image: ' + imageUrl);
+    Logger.log('objective images: ' + objectiveImageUrls);
+
+    const objectives: ProjectObjectiveDto[] = objectiveImageUrls.map(
+      (url, idx) => ({
+        imageUrl: url,
+        objective: createProjectDto.objectiveDescriptions[idx],
+      }),
+    );
 
     return this.prisma.project.create({
       data: {
@@ -44,27 +52,38 @@ export class ProjectsService {
           connect: { id: createProjectDto.organizerId },
         },
         objectives: {
-          create: createProjectDto.objectives.map((objective) => ({
-            objective: objective.objective,
-            imageUrl: objective.image,
-          })),
+          create: objectives,
         },
         requirements: {
-          create: createProjectDto.requirements.map((requirement) => ({
-            requirement: requirement.requirement,
-            quantity: requirement.quantity,
-          })),
+          create: createProjectDto.requirements,
         },
       },
+      include: { organizer: true },
     });
   }
 
   findAll() {
-    return this.prisma.project.findMany();
+    return this.prisma.project.findMany({
+      include: { organizer: true },
+    });
   }
 
   findOne(id: string) {
-    return this.prisma.project.findUnique({ where: { id } });
+    return this.prisma.project.findUnique({
+      where: { id },
+      include: {
+        organizer: true,
+        objectives: true,
+        requirements: true,
+        donations: true,
+      },
+    });
+  }
+
+  findOrganizerProjects(id: string) {
+    return this.prisma.project.findMany({
+      where: { organizerId: id },
+    });
   }
 
   async update(id: string, updateProjectDto: UpdateProjectDto) {
@@ -82,20 +101,6 @@ export class ProjectsService {
   async uploadProjectImage(id: string, file: Express.Multer.File) {
     const bucketName = 'regenera-da102.appspot.com';
 
-    const user = await this.findOne(id);
-
-    if (user.imageUrl) {
-      await this.firebase.storage
-        .bucket(bucketName)
-        .file(
-          user.imageUrl.replace(
-            `https://storage.googleapis.com/${bucketName}/`,
-            '',
-          ),
-        )
-        .delete();
-    }
-
     const fileName = `projects/${id}/images/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
 
     await this.firebase.storage
@@ -109,25 +114,11 @@ export class ProjectsService {
 
     const imageUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
 
-    return this.update(id, { image: imageUrl });
+    return imageUrl;
   }
 
   async uploadProjectObjectiveImage(id: string, file: Express.Multer.File) {
     const bucketName = 'regenera-da102.appspot.com';
-
-    const user = await this.findOne(id);
-
-    if (user.imageUrl) {
-      await this.firebase.storage
-        .bucket(bucketName)
-        .file(
-          user.imageUrl.replace(
-            `https://storage.googleapis.com/${bucketName}/`,
-            '',
-          ),
-        )
-        .delete();
-    }
 
     const fileName = `projects/${id}/objectives/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
 
@@ -142,6 +133,6 @@ export class ProjectsService {
 
     const imageUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
 
-    return this.update(id, { image: imageUrl });
+    return imageUrl;
   }
 }

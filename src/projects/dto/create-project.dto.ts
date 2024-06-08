@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { plainToInstance, Transform, Type } from 'class-transformer';
 import {
-  ArrayMinSize,
   IsArray,
   IsDate,
   IsNotEmpty,
@@ -10,60 +9,113 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { ProjectObjectiveDto } from './project-objective.dto';
 import { ProjectRequirementDto } from './project-requirement.dto';
 
 export class CreateProjectDto {
-  @ApiProperty()
+  @ApiProperty({ example: 'Community Park Renovation' })
   @IsString()
   @IsNotEmpty()
   title: string;
 
   @ApiProperty({ type: 'string', format: 'binary' })
-  @IsNotEmpty()
   image: any;
 
   @Type(() => String)
-  @ApiProperty()
+  @ApiProperty({
+    example: 'Renovating the local park to improve community engagement.',
+  })
   @IsString()
   @IsNotEmpty()
   description: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: '123 Park Lane' })
   @IsString()
   @IsNotEmpty()
   address: string;
 
   @Type(() => Number)
-  @ApiProperty()
+  @ApiProperty({ example: 10000 })
   @IsNumber()
   @IsNotEmpty()
   @Min(1)
   fundingGoal: number;
 
-  @ApiProperty()
+  @ApiProperty({ example: '2023-12-31' })
   @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   deadline: Date;
 
   @Type(() => String)
-  @ApiProperty()
+  @ApiProperty({ example: 'organizer123' })
   @IsString()
   @IsNotEmpty()
   organizerId: string;
 
-  @ApiProperty({ type: [ProjectObjectiveDto] })
-  @ValidateNested({ each: true })
-  @Type(() => ProjectObjectiveDto)
-  @IsArray()
-  @ArrayMinSize(1)
-  objectives: ProjectObjectiveDto[];
+  // @ApiProperty({
+  //   type: [ProjectObjectiveDto],
+  //   example: [
+  //     {
+  //       image: 'kakek_dewa.jpg',
+  //       objective: 'walls',
+  //     },
+  //     {
+  //       image: 'kakek_dewa.jpg',
+  //       objective: 'walls',
+  //     },
+  //   ],
+  // })
+  // @IsArray()
+  // @ValidateNested({ each: true })
+  // @Type(() => ProjectObjectiveDto)
+  // @Transform(({ value }) => {
+  //   Logger.log('objectives: ', value)
+  //   if (typeof value === 'string') {
+  //     return JSON.parse(value).map((item: any) =>
+  //       plainToInstance(ProjectObjectiveDto, item),
+  //     );
+  //   }
+  //   return value;
+  // })
+  // objectives: ProjectObjectiveDto[];
 
-  @ApiProperty({ type: [ProjectRequirementDto] })
+  @ApiProperty({ type: 'string', format: 'binary', isArray: true })
+  objectiveImages: any;
+
+  @IsArray()
+  @ApiProperty({ type: 'string', isArray: true })
+  @Type(() => String)
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value.split(',').map((item) => item.trim());
+    }
+    return value;
+  })
+  objectiveDescriptions: string[];
+
+  @ApiProperty({
+    type: [ProjectRequirementDto],
+    example: [
+      {
+        requirement: 'Chairs',
+        quantity: 50,
+      },
+      {
+        requirement: 'Tables',
+        quantity: 10,
+      },
+    ],
+  })
+  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ProjectRequirementDto)
-  @IsArray()
-  @ArrayMinSize(1)
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return JSON.parse(value).map((item: any) =>
+        plainToInstance(ProjectRequirementDto, item),
+      );
+    }
+    return value;
+  })
   requirements: ProjectRequirementDto[];
 }
