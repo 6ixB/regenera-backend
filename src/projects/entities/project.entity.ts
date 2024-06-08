@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Project } from '@prisma/client';
+import { Project, ProjectObjective, ProjectRequirement } from '@prisma/client';
+import { Exclude } from 'class-transformer';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 export class ProjectEntity implements Project {
   constructor(partial: Partial<ProjectEntity>) {
@@ -14,6 +16,9 @@ export class ProjectEntity implements Project {
 
   @ApiProperty()
   description: string;
+
+  @ApiProperty()
+  address: string;
 
   @ApiProperty()
   imageUrl: string;
@@ -36,6 +41,15 @@ export class ProjectEntity implements Project {
   @ApiProperty()
   deadline: Date;
 
-  @ApiProperty()
+  @Exclude()
   organizerId: string;
+
+  @ApiProperty({ required: false, type: UserEntity })
+  organizer?: UserEntity;
+
+  @ApiProperty()
+  objectives: ProjectObjective;
+
+  @ApiProperty()
+  requirements: ProjectRequirement;
 }
