@@ -1,5 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Project, ProjectObjective, ProjectRequirement } from '@prisma/client';
+import {
+  Project,
+  ProjectDonation,
+  ProjectObjective,
+  ProjectRequirement,
+} from '@prisma/client';
 import { Exclude } from 'class-transformer';
 import { UserEntity } from 'src/users/entities/user.entity';
 
@@ -47,12 +52,18 @@ export class ProjectEntity implements Project {
   @Exclude()
   organizerId: string;
 
-  @ApiProperty({ required: false, type: UserEntity })
-  organizer?: UserEntity;
+  @ApiProperty()
+  organizer: UserEntity;
 
   @ApiProperty()
   objectives: ProjectObjective;
 
   @ApiProperty()
   requirements: ProjectRequirement;
+
+  @ApiProperty()
+  volunteers: UserEntity;
+
+  @ApiProperty()
+  donators: ProjectDonation;
 }
