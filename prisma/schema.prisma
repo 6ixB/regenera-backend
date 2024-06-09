@@ -26,6 +26,7 @@ model User {
   profile      UserProfile?
   achievements UserAchievement[]
   donations    ProjectDonation[]
+  volunteers   ProjectVolunteer[]
   projects     Project[]
   chats        Chat[]
   chatRooms    ChatRoomUser[]
@@ -63,9 +64,11 @@ model Project {
   fundingGoal  Float
   funding      Float                @default(0)
   rating       Float?
+  phase        String               @default("DONATING")
   objectives   ProjectObjective[]
   requirements ProjectRequirement[]
   donations    ProjectDonation[]
+  volunteers   ProjectVolunteer[]
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
   deadline     DateTime
@@ -98,6 +101,17 @@ model ProjectDonation {
   projectId String
 }
 
+model ProjectVolunteer {
+  id          String  @id @default(uuid())
+  volunteer   User    @relation(fields: [volunteerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  volunteerId String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  projectId   String
+
+  @@unique([volunteerId, projectId])
+
+}
+
 model ChatRoom {
   id        String     @id @default(uuid())
   title     String
@@ -127,3 +141,4 @@ model ChatRoomUser {
 
   @@id([chatRoomId, userId])
 }
+

@@ -1,10 +1,5 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import {
-  Inject,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Cache } from 'cache-manager';
@@ -37,15 +32,11 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException();
     }
 
-    const accessToken = req.get('Authorization').replace('Bearer', '').trim();
-    const cachedAccessToken = await this.cacheManager.get(
-      `access-token-${user.id}`,
-    );
-    const valid = cachedAccessToken === accessToken;
-
-    Logger.log(`Cached access token: ${cachedAccessToken}`);
-    Logger.log(`Access token: ${accessToken}`);
-    Logger.log(`Valid: ${valid}`);
+    // const accessToken = req.get('Authorization').replace('Bearer', '').trim();
+    // const cachedAccessToken = await this.cacheManager.get(
+    //   `access-token-${user.id}`,
+    // );
+    // const valid = cachedAccessToken === accessToken;
 
     // if (!valid) {
     //   throw new UnauthorizedException();
