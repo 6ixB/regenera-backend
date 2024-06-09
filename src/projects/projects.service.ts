@@ -89,6 +89,14 @@ export class ProjectsService {
           },
         },
         donations: true,
+        volunteers: {
+          select: {
+            id: false,
+            project: false,
+            projectId: false,
+            volunteer: true,
+          },
+        },
       },
     });
   }
@@ -113,6 +121,20 @@ export class ProjectsService {
     });
   }
 
+  async findProjectTopDonations(id: string) {
+    return this.prisma.projectDonation.groupBy({
+      by: ['donatorId'],
+      where: {
+        projectId: id,
+      },
+      _sum: {
+        amount: true,
+      },
+      orderBy: { _sum: { amount: 'desc' } },
+      take: 3,
+    });
+  }
+
   async update(id: string, updateProjectDto: UpdateProjectDto) {
     const { volunteerId, donation, ...projectData } = updateProjectDto;
 
@@ -129,11 +151,16 @@ export class ProjectsService {
         });
       }
     }
+
     const existingProject = await this.findOne(id);
 
     const requirementIds = existingProject.requirements.map((requirement) => ({
       id: requirement.id,
     }));
+
+    if (donation) {
+      projectData.funding = existingProject.funding + donation.amount;
+    }
 
     return this.prisma.project.update({
       where: { id },

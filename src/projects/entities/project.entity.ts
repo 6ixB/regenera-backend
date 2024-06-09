@@ -71,5 +71,5 @@ export class ProjectEntity implements Project {
   volunteers: UserEntity;
 
   @ApiProperty()
-  donators: ProjectDonation;
+  donations: ProjectDonation;
 }
