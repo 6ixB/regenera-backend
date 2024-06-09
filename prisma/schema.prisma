@@ -28,6 +28,8 @@ model User {
   donations    ProjectDonation[]
   volunteers   ProjectVolunteer[]
   projects     Project[]
+  chats        Chat[]
+  chatRooms    ChatRoomUser[]
 }
 
 model UserProfile {
@@ -108,4 +110,34 @@ model ProjectVolunteer {
 
   @@unique([volunteerId, projectId])
 
+}
+
+model ChatRoom {
+  id        String     @id @default(uuid())
+  title     String
+  createdAt DateTime   @default(now())
+  chats     Chat[]
+  users     ChatRoomUser[]
+}
+
+model Chat {
+  id          String   @id @default(uuid())
+  message     String?
+  image       String?
+  userId      String
+  createdAt   DateTime @default(now())
+
+  chatRoomId  String
+  chatRoom    ChatRoom @relation(fields: [chatRoomId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model ChatRoomUser {
+  chatRoomId String
+  userId     String
+
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@id([chatRoomId, userId])
 }

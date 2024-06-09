@@ -8,6 +8,9 @@ import { FirebaseModule } from 'nestjs-firebase';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { CacheModule } from '@nestjs/cache-manager';
+import { ChatRoomModule } from './chat-room/chat-room.module';
+import { ChatModule } from './chat/chat.module';
+import { ChatRoomRelationModule } from './chat-room-relation/chat-room-relation.module';
 
 @Module({
   imports: [
@@ -21,6 +24,9 @@ import { CacheModule } from '@nestjs/cache-manager';
     UsersModule,
     AuthModule,
     ProjectsModule,
+    ChatRoomModule,
+    ChatModule,
+    ChatRoomRelationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
