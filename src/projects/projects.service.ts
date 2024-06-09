@@ -1,12 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { PrismaService } from 'nestjs-prisma';
 import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
 import { v4 as uuidv4 } from 'uuid';
 import { ProjectObjectiveDto } from './dto/project-objective.dto';
-import { UserEntity } from 'src/users/entities/user.entity';
-import { connect } from 'http2';
 
 @Injectable()
 export class ProjectsService {
@@ -44,9 +42,11 @@ export class ProjectsService {
         description: createProjectDto.description,
         imageUrl: createProjectDto.image,
         fundingGoal: createProjectDto.fundingGoal,
+        fundingGoalDeadline: createProjectDto.fundingGoalDeadline,
+        volunteerGoal: createProjectDto.volunteerGoal,
+        volunteerGoalDeadline: createProjectDto.volunteerGoalDeadline,
         funding: 0,
         rating: 0,
-        deadline: createProjectDto.deadline,
         organizer: {
           connect: { id: createProjectDto.organizerId },
         },
@@ -93,9 +93,23 @@ export class ProjectsService {
     });
   }
 
-  findOrganizerProjects(id: string) {
+  findProjectsByOrganizer(id: string) {
     return this.prisma.project.findMany({
       where: { organizerId: id },
+    });
+  }
+
+  findProjectsByVolunteer(id: string) {
+    return this.prisma.project.findMany({
+      where: { volunteers: { some: { volunteerId: id } } },
+      include: { organizer: true },
+    });
+  }
+
+  findProjectsByDonator(id: string) {
+    return this.prisma.project.findMany({
+      where: { donations: { some: { donatorId: id } } },
+      include: { organizer: true },
     });
   }
 
@@ -129,8 +143,8 @@ export class ProjectsService {
         donations: {
           connectOrCreate: [
             {
-              where: { id: donation.donatorId }, // Provide the where clause
-              create: donation, // Provide data to create a new volunteer if needed
+              where: { id: donation.donatorId },
+              create: donation,
             },
           ],
         },

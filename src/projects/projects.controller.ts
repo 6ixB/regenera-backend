@@ -86,8 +86,26 @@ export class ProjectsController {
 
   @Get('organizer/:id')
   @ApiOkResponse({ type: ProjectEntity })
-  findOrganizerProjects(@Param('id') id: string) {
-    return this.projectsService.findOrganizerProjects(id);
+  async findProjectsByOrganizer(@Param('id') id: string) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    return this.projectsService.findProjectsByOrganizer(id);
+  }
+
+  @Get('volunteer/:id')
+  @ApiOkResponse({ type: ProjectEntity })
+  async findProjectsByVolunteer(@Param('id') id: string) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    return this.projectsService.findProjectsByVolunteer(id);
+  }
+
+  @Get('donator/:id')
+  @ApiOkResponse({ type: ProjectEntity })
+  async findProjectsByDonator(@Param('id') id: string) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    return this.projectsService.findProjectsByDonator(id);
   }
 
   @Patch(':id')
