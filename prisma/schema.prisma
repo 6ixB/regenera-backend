@@ -14,15 +14,15 @@ datasource db {
 }
 
 model User {
-  id           String            @id @default(uuid())
-  email        String            @unique
+  id           String             @id @default(uuid())
+  email        String             @unique
   password     String?
-  username     String            @unique
+  username     String             @unique
   rating       Float?
   imageUrl     String?
   refreshToken String?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
   profile      UserProfile?
   achievements UserAchievement[]
   donations    ProjectDonation[]
@@ -57,23 +57,25 @@ model UserAchievement {
 }
 
 model Project {
-  id           String               @id @default(uuid())
-  title        String
-  description  String
-  imageUrl     String
-  fundingGoal  Float
-  funding      Float                @default(0)
-  rating       Float?
-  phase        String               @default("DONATING")
-  objectives   ProjectObjective[]
-  requirements ProjectRequirement[]
-  donations    ProjectDonation[]
-  volunteers   ProjectVolunteer[]
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
-  deadline     DateTime
-  organizer    User                 @relation(fields: [organizerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  organizerId  String
+  id                    String               @id @default(uuid())
+  title                 String
+  description           String
+  imageUrl              String
+  fundingGoal           Float
+  fundingGoalDeadline   DateTime
+  funding               Float                @default(0)
+  volunteerGoal         Int
+  volunteerGoalDeadline DateTime
+  rating                Float?
+  phase                 String               @default("DONATING")
+  objectives            ProjectObjective[]
+  requirements          ProjectRequirement[]
+  donations             ProjectDonation[]
+  volunteers            ProjectVolunteer[]
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  organizer             User                 @relation(fields: [organizerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organizerId           String
 }
 
 model ProjectObjective {
@@ -109,7 +111,6 @@ model ProjectVolunteer {
   projectId   String
 
   @@unique([volunteerId, projectId])
-
 }
 
 model ChatRoom {

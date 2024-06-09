@@ -32,6 +32,15 @@ export class ProjectEntity implements Project {
   fundingGoal: number;
 
   @ApiProperty()
+  fundingGoalDeadline: Date;
+
+  @ApiProperty()
+  volunteerGoal: number;
+
+  @ApiProperty()
+  volunteerGoalDeadline: Date;
+
+  @ApiProperty()
   funding: number;
 
   @ApiProperty()
@@ -45,9 +54,6 @@ export class ProjectEntity implements Project {
 
   @ApiProperty()
   updatedAt: Date;
-
-  @ApiProperty()
-  deadline: Date;
 
   @Exclude()
   organizerId: string;
