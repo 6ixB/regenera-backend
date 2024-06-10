@@ -3,22 +3,22 @@ import { IsString, IsOptional, isNotEmpty, IsNotEmpty } from 'class-validator';
 
 export class CreateChatDto {
     @IsString()
-    @ApiProperty()
+    @ApiProperty({ example: 'Community Park Renovation' })
     @IsOptional()
     message?: string;
   
     @IsString()
-    @ApiProperty()
+    @ApiProperty({ type: 'string', format: 'binary' })
     @IsOptional()
-    image?: string;
+    image?: any;
   
     @IsString()
-    @ApiProperty()
+    @ApiProperty({ example: '12345' })
     @IsNotEmpty()
     userId: string;
   
     @IsString()
-    @ApiProperty()
+    @ApiProperty({ example: '12345' })
     @IsNotEmpty()
     chatRoomId: string;
 }

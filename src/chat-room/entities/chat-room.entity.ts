@@ -15,4 +15,6 @@ export class ChatRoomEntity implements ChatRoom {
     @ApiProperty()
     createdAt: Date;
 
+    @ApiProperty()
+    projectId: String;
 }

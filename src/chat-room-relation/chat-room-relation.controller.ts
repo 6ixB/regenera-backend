@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ChatRoomRelationService } from './chat-room-relation.service';
 import { CreateChatRoomRelationDto } from './dto/create-chat-room-relation.dto';
 import { UpdateChatRoomRelationDto } from './dto/update-chat-room-relation.dto';
-import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { ChatRoomRelationEntity } from './entities/chat-room-relation.entity';
+import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 
 @Controller('chat-room-relation')
 @ApiTags('chat-room-relation')
@@ -12,7 +13,7 @@ export class ChatRoomRelationController {
 
   @Post()
   @ApiCreatedResponse({ type: ChatRoomRelationEntity})
-  create(@Body() createChatRoomRelationDto: CreateChatRoomRelationDto) {
+  async create(@Body() createChatRoomRelationDto: CreateChatRoomRelationDto) {
     return this.chatRoomRelationService.create(createChatRoomRelationDto);
   }
 
@@ -22,7 +23,7 @@ export class ChatRoomRelationController {
   }
 
   @Get(':chatRoomId')
-  async findAllByChatRoomId(@Param('userId') userId: string) {
-    return this.chatRoomRelationService.findAllByChatRoomId(userId);
+  async findAllByChatRoomId(@Param('chatRoomId') chatRoomId: string) {
+    return this.chatRoomRelationService.findAllByChatRoomId(chatRoomId);
   }
 }

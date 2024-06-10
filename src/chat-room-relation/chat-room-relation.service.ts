@@ -7,12 +7,12 @@ import { PrismaService } from 'nestjs-prisma';
 export class ChatRoomRelationService {
   constructor(private prisma: PrismaService) {}
 
-  create(createChatRoomRelationDto: CreateChatRoomRelationDto) {
+  async create(createChatRoomRelationDto: CreateChatRoomRelationDto) {
     const chatRelationData = {
       ...createChatRoomRelationDto
     };
 
-    return this.prisma.chatRoomUser.create({data: chatRelationData});
+    return await this.prisma.chatRoomUser.create({data: chatRelationData});
   }
 
   async findAllByUserId(userId: string) {

@@ -12,13 +12,13 @@ export class ChatRoomController {
 
   @Post()
   @ApiCreatedResponse({ type: ChatRoomEntity })
-  create(@Body() createChatRoomDto: CreateChatRoomDto) {
+  async create(@Body() createChatRoomDto: CreateChatRoomDto) {
     Logger.log(createChatRoomDto.title)
     return this.chatRoomService.create(createChatRoomDto);
   }
 
   @Get(':chatRoomId')
-  findOne(@Param('chatRoomId') chatRoomId: string) {
+  async findOne(@Param('chatRoomId') chatRoomId: string) {
     return this.chatRoomService.findOne(chatRoomId);
   }
 }
