@@ -72,4 +72,10 @@ export class ProjectEntity implements Project {
 
   @ApiProperty()
   donations: ProjectDonation;
+
+  @ApiProperty()
+  donationsCount?: number;
+  
+  @ApiProperty()
+  volunteersCount?: number;
 }

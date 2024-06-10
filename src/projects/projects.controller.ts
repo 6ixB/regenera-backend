@@ -125,8 +125,6 @@ export class ProjectsController {
     @Body(new ValidationPipe({ transform: true }))
     updateProjectDto: UpdateProjectDto,
   ) {
-    Logger.log(updateProjectDto.donation);
-
     return this.projectsService.update(id, updateProjectDto);
   }
 

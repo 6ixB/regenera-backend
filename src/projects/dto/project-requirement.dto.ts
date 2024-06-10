@@ -4,7 +4,6 @@ import {
   IsNotEmpty,
   IsString,
   IsNumber,
-  ValidateNested,
 } from 'class-validator';
 
 export class ProjectRequirementDto {

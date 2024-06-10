@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { PrismaService } from 'nestjs-prisma';
@@ -63,64 +63,129 @@ export class ProjectsService {
   }
 
   findAll() {
-    return this.prisma.project.findMany({
-      include: { organizer: true },
-    });
+    return this.prisma.project
+      .findMany({
+        include: {
+          organizer: true,
+          _count: {
+            select: {
+              donations: true,
+              volunteers: true,
+            },
+          },
+        },
+      })
+      .then((projects) => {
+        return projects.map((project) => ({
+          ...project,
+          donationsCount: project._count.donations,
+          volunteersCount: project._count.volunteers,
+          _count: undefined,
+        }));
+      });
   }
 
   findOne(id: string) {
-    return this.prisma.project.findUnique({
-      where: { id },
-      include: {
-        organizer: true,
-        objectives: {
-          select: {
-            id: true,
-            imageUrl: true,
-            objective: true,
-            projectId: false,
+    return this.prisma.project
+      .findUnique({
+        where: { id },
+        include: {
+          organizer: true,
+          objectives: {
+            select: {
+              id: true,
+              imageUrl: true,
+              objective: true,
+              projectId: false,
+            },
+          },
+          requirements: {
+            select: {
+              id: true,
+              requirement: true,
+              quantity: true,
+              projectId: false,
+            },
+          },
+          _count: {
+            select: {
+              donations: true,
+              volunteers: true,
+            },
           },
         },
-        requirements: {
-          select: {
-            id: true,
-            requirement: true,
-            quantity: true,
-            projectId: false,
-          },
-        },
-        donations: true,
-        volunteers: {
-          select: {
-            id: false,
-            project: false,
-            projectId: false,
-            volunteer: true,
-          },
-        },
-      },
-    });
+      })
+      .then((project) => {
+        return {
+          ...project,
+          donationsCount: project._count.donations,
+          volunteersCount: project._count.volunteers,
+          _count: undefined,
+        };
+      });
   }
 
   findProjectsByOrganizer(id: string) {
-    return this.prisma.project.findMany({
-      where: { organizerId: id },
-      include: { organizer: true },
-    });
+    return this.prisma.project
+      .findMany({
+        where: { organizerId: id },
+        include: {
+          organizer: true,
+          _count: {
+            select: { volunteers: true, donations: true },
+          },
+        },
+      })
+      .then((projects) => {
+        return projects.map((project) => ({
+          ...project,
+          donationsCount: project._count.donations,
+          volunteersCount: project._count.volunteers,
+          _count: undefined,
+        }));
+      });
   }
 
   findProjectsByVolunteer(id: string) {
-    return this.prisma.project.findMany({
-      where: { volunteers: { some: { volunteerId: id } } },
-      include: { organizer: true },
-    });
+    return this.prisma.project
+      .findMany({
+        where: { volunteers: { some: { volunteerId: id } } },
+        include: {
+          organizer: true,
+          _count: {
+            select: { volunteers: true, donations: true },
+          },
+        },
+      })
+      .then((projects) => {
+        return projects.map((project) => ({
+          ...project,
+          donationsCount: project._count.donations,
+          volunteersCount: project._count.volunteers,
+          _count: undefined,
+        }));
+      });
   }
 
   findProjectsByDonator(id: string) {
-    return this.prisma.project.findMany({
-      where: { donations: { some: { donatorId: id } } },
-      include: { organizer: true },
-    });
+    return this.prisma.project
+      .findMany({
+        where: { donations: { some: { donatorId: id } } },
+        include: {
+          organizer: true,
+          _count: {
+            select: { volunteers: true, donations: true },
+          },
+        },
+      })
+      .then((projects) => {
+        return projects.map((project) => ({
+          ...project,
+          donationsCount: project._count.donations,
+          volunteersCount: project._count.volunteers,
+          _count: undefined,
+        }));
+      });
   }
 
   async findProjectTopDonations(id: string) {
@@ -149,11 +214,6 @@ export class ProjectsService {
       }),
     );
 
-    // Step 3: Log the details (optional) and return the result
-    topDonationsDetails.forEach((donationDetail) => {
-      Logger.log(donationDetail);
-    });
-
     return topDonationsDetails;
   }
 
@@ -180,7 +240,7 @@ export class ProjectsService {
       id: requirement.id,
     }));
 
-    if (donation) {
+    if (donation !== undefined) {
       projectData.funding = existingProject.funding + donation.amount;
     }
 
@@ -190,12 +250,14 @@ export class ProjectsService {
         ...projectData,
         requirements: { connect: requirementIds },
         donations: {
-          connectOrCreate: [
-            {
-              where: { id: donation.donatorId },
-              create: donation,
-            },
-          ],
+          connectOrCreate: donation
+            ? [
+                {
+                  where: { id: donation.donatorId },
+                  create: donation,
+                },
+              ]
+            : undefined,
         },
       },
       include: { donations: true, volunteers: true },
