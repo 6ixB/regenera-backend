@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { PrismaService } from 'nestjs-prisma';
@@ -104,6 +104,7 @@ export class ProjectsService {
   findProjectsByOrganizer(id: string) {
     return this.prisma.project.findMany({
       where: { organizerId: id },
+      include: { organizer: true },
     });
   }
 
@@ -122,7 +123,7 @@ export class ProjectsService {
   }
 
   async findProjectTopDonations(id: string) {
-    return this.prisma.projectDonation.groupBy({
+    const topDonations = await this.prisma.projectDonation.groupBy({
       by: ['donatorId'],
       where: {
         projectId: id,
@@ -133,6 +134,26 @@ export class ProjectsService {
       orderBy: { _sum: { amount: 'desc' } },
       take: 3,
     });
+
+    const topDonationsDetails = await Promise.all(
+      topDonations.map(async (donation) => {
+        const donatorDetails = await this.prisma.user.findFirst({
+          where: { id: donation.donatorId },
+        });
+
+        return {
+          donatorDetails,
+          totalAmount: donation._sum.amount,
+        };
+      }),
+    );
+
+    // Step 3: Log the details (optional) and return the result
+    topDonationsDetails.forEach((donationDetail) => {
+      Logger.log(donationDetail);
+    });
+
+    return topDonationsDetails;
   }
 
   async update(id: string, updateProjectDto: UpdateProjectDto) {
