@@ -9,6 +9,9 @@ import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { CacheModule } from '@nestjs/cache-manager';
 import { SearchModule } from './search/search.module';
+import { ChatRoomModule } from './chat-room/chat-room.module';
+import { ChatModule } from './chat/chat.module';
+import { ChatRoomRelationModule } from './chat-room-relation/chat-room-relation.module';
 
 @Module({
   imports: [
@@ -23,6 +26,9 @@ import { SearchModule } from './search/search.module';
     AuthModule,
     ProjectsModule,
     SearchModule,
+    ChatRoomModule,
+    ChatModule,
+    ChatRoomRelationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
