@@ -5,6 +5,7 @@ import { PrismaService } from 'nestjs-prisma';
 import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
 import { v4 as uuidv4 } from 'uuid';
 import { ProjectObjectiveDto } from './dto/project-objective.dto';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class ProjectsService {
@@ -142,7 +143,7 @@ export class ProjectsService {
         });
 
         return {
-          donatorDetails,
+          donator: new UserEntity(donatorDetails),
           totalAmount: donation._sum.amount,
         };
       }),
