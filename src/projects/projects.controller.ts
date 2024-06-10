@@ -119,12 +119,24 @@ export class ProjectsController {
   @Patch(':id')
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'submissionImages' }]))
   @ApiCreatedResponse({ type: ProjectEntity })
-  update(
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: UpdateProjectDto,
+  })
+  async update(
     @Param('id') id: string,
     @Body(new ValidationPipe({ transform: true }))
     updateProjectDto: UpdateProjectDto,
+    @UploadedFiles()
+    files: {
+      submissionImages?: Express.Multer.File[];
+    },
   ) {
+    if (files?.submissionImages) {
+      updateProjectDto.submissionImages = files.submissionImages;
+    }
     return this.projectsService.update(id, updateProjectDto);
   }
 

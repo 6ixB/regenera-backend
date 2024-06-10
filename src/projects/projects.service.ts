@@ -1,11 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { CreateProjectDto } from './dto/create-project.dto';
+import { Injectable, Logger } from '@nestjs/common';
+import { CreateProjectDto, ProjectPhaseEnum } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { PrismaService } from 'nestjs-prisma';
 import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
 import { v4 as uuidv4 } from 'uuid';
 import { ProjectObjectiveDto } from './dto/project-objective.dto';
 import { UserEntity } from 'src/users/entities/user.entity';
+
+const bucketName = 'regenera-da102.appspot.com';
 
 @Injectable()
 export class ProjectsService {
@@ -97,6 +99,20 @@ export class ProjectsService {
               imageUrl: true,
               objective: true,
               projectId: false,
+              submission: {
+                select: {
+                  id: true,
+                  imageUrl: true,
+                  objectiveId: false,
+                  submitterId: false,
+                  submitter: {
+                    select: {
+                      username: true,
+                      password: false,
+                    },
+                  },
+                },
+              },
             },
           },
           requirements: {
@@ -234,6 +250,19 @@ export class ProjectsService {
       }
     }
 
+    if (
+      updateProjectDto.submissionObjectiveIds &&
+      updateProjectDto.submissionSubmitterIds &&
+      updateProjectDto.submissionImages
+    ) {
+      return this.updateProjectSubmission(
+        id,
+        updateProjectDto.submissionObjectiveIds,
+        updateProjectDto.submissionSubmitterIds,
+        updateProjectDto.submissionImages,
+      );
+    }
+
     const existingProject = await this.findOne(id);
 
     const requirementIds = existingProject.requirements.map((requirement) => ({
@@ -242,6 +271,10 @@ export class ProjectsService {
 
     if (donation !== undefined) {
       projectData.funding = existingProject.funding + donation.amount;
+    }
+
+    if (updateProjectDto.meetupDate) {
+      projectData.phase = ProjectPhaseEnum.ONGOING;
     }
 
     return this.prisma.project.update({
@@ -269,8 +302,6 @@ export class ProjectsService {
   }
 
   async uploadProjectImage(id: string, file: Express.Multer.File) {
-    const bucketName = 'regenera-da102.appspot.com';
-
     const fileName = `projects/${id}/images/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
 
     await this.firebase.storage
@@ -288,9 +319,99 @@ export class ProjectsService {
   }
 
   async uploadProjectObjectiveImage(id: string, file: Express.Multer.File) {
-    const bucketName = 'regenera-da102.appspot.com';
-
     const fileName = `projects/${id}/objectives/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
+
+    await this.firebase.storage
+      .bucket(bucketName)
+      .file(fileName)
+      .save(file.buffer, {});
+
+    const fileRef = this.firebase.storage.bucket(bucketName).file(fileName);
+
+    fileRef.makePublic();
+
+    const imageUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+
+    return imageUrl;
+  }
+
+  async updateProjectSubmission(
+    projectId: string,
+    submissionObjectiveIds: string[],
+    submissionSubmitterIds: string[],
+    submissionImages: Express.Multer.File[],
+  ) {
+    const existingSubmissions = await Promise.all(
+      submissionObjectiveIds.map(async (objectiveId, idx) => {
+        return this.prisma.projectSubmission.findFirst({
+          where: {
+            AND: [
+              { objectiveId: objectiveId },
+              { submitterId: submissionSubmitterIds[idx] },
+            ],
+          },
+        });
+      }),
+    );
+
+    existingSubmissions.forEach(async (existingSubmission) => {
+      if (existingSubmission) {
+        if (existingSubmission.imageUrl) {
+          await this.firebase.storage
+            .bucket(bucketName)
+            .file(
+              existingSubmission.imageUrl.replace(
+                `https://storage.googleapis.com/${bucketName}/`,
+                '',
+              ),
+            )
+            .delete();
+        }
+      }
+    });
+
+    const submissionImageUrls = await Promise.all(
+      submissionObjectiveIds.map((objectiveId, idx) => {
+        return this.uploadProjectSubmissionImage(
+          projectId,
+          objectiveId,
+          submissionImages[idx],
+        );
+      }),
+    );
+
+    const submissions = submissionImageUrls.map((url, idx) => ({
+      objectiveId: submissionObjectiveIds[idx],
+      submitterId: submissionSubmitterIds[idx],
+      imageUrl: url,
+    }));
+
+    submissions.forEach(async (submission) => {
+      const existingSubmission = existingSubmissions.find(
+        (existingSubmission) =>
+          existingSubmission &&
+          existingSubmission.objectiveId === submission.objectiveId,
+      );
+
+      if (existingSubmission) {
+        await this.prisma.projectSubmission.update({
+          where: { id: existingSubmission.id },
+          data: submission,
+        });
+      } else {
+        await this.prisma.projectSubmission.create({
+          data: submission,
+        });
+      }
+    });
+  }
+
+  async uploadProjectSubmissionImage(
+    projectId: string,
+    objectiveId,
+    file: Express.Multer.File,
+  ) {
+    const fileName = `projects/${projectId}/objectives/${objectiveId}/submission/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
 
     await this.firebase.storage
       .bucket(bucketName)
