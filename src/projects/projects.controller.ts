@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   ValidationPipe,
   UploadedFiles,
+  Logger,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -26,6 +27,7 @@ import { ProjectEntity } from './entities/project.entity';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { UserEntity } from 'src/users/entities/user.entity';
+import { ProjectDonationDto } from './dto/project-donation.dto';
 
 @Controller('projects')
 @ApiTags('projects')
@@ -86,15 +88,43 @@ export class ProjectsController {
 
   @Get('organizer/:id')
   @ApiOkResponse({ type: ProjectEntity })
-  findOrganizerProjects(@Param('id') id: string) {
-    return this.projectsService.findOrganizerProjects(id);
+  async findProjectsByOrganizer(@Param('id') id: string) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    return this.projectsService.findProjectsByOrganizer(id);
+  }
+
+  @Get('volunteer/:id')
+  @ApiOkResponse({ type: ProjectEntity })
+  async findProjectsByVolunteer(@Param('id') id: string) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    return this.projectsService.findProjectsByVolunteer(id);
+  }
+
+  @Get('donator/:id')
+  @ApiOkResponse({ type: ProjectEntity })
+  async findProjectsByDonator(@Param('id') id: string) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    return this.projectsService.findProjectsByDonator(id);
+  }
+
+  @Get('top-donations/:id')
+  @ApiOkResponse({ type: ProjectDonationDto })
+  async findProjectsTopDonations(@Param('id') id: string) {
+    return this.projectsService.findProjectTopDonations(id);
   }
 
   @Patch(':id')
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   @ApiCreatedResponse({ type: ProjectEntity })
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
+  update(
+    @Param('id') id: string,
+    @Body(new ValidationPipe({ transform: true }))
+    updateProjectDto: UpdateProjectDto,
+  ) {
     return this.projectsService.update(id, updateProjectDto);
   }
 

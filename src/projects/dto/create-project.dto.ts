@@ -16,6 +16,8 @@ import { ProjectRequirementDto } from './project-requirement.dto';
 export enum ProjectPhaseEnum {
   DONATING = 'DONATING',
   VOLUNTEERING = 'VOLUNTEERING',
+  PENDING = 'PENDING',
+  ONGOING = 'ONGOING',
   COMPLETED = 'COMPLETED',
 }
 
@@ -42,22 +44,42 @@ export class CreateProjectDto {
   address: string;
 
   @Type(() => Number)
-  @ApiProperty({ example: 10000 })
+  @ApiProperty({ example: 0 })
+  @IsNumber()
+  @IsOptional()
+  funding?: number;
+
+  @Type(() => Number)
+  @ApiProperty({ example: 100000 })
   @IsNumber()
   @IsNotEmpty()
-  @Min(1)
+  @Min(100000)
   fundingGoal: number;
 
   @ApiProperty({ example: '2023-12-31' })
   @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
-  deadline: Date;
+  fundingGoalDeadline: Date;
+
+  @Type(() => Number)
+  @ApiProperty({ example: 10000 })
+  @IsNumber()
+  @IsNotEmpty()
+  @Min(1)
+  volunteerGoal: number;
+
+  @ApiProperty({ example: '2023-12-31' })
+  @Type(() => Date)
+  @IsDate()
+  @IsNotEmpty()
+  volunteerGoalDeadline: Date;
 
   @ApiProperty({ enum: ProjectPhaseEnum, enumName: 'ProjectPhase' })
   @IsOptional()
   @IsEnum(ProjectPhaseEnum, {
-    message: 'phase must be one of: DONATING, VOLUNTEERING, COMPLETED',
+    message:
+      'Phase must be one of: DONATING, VOLUNTEERING, PENDING, ONGOING, COMPLETED',
   })
   phase?: ProjectPhaseEnum;
 
