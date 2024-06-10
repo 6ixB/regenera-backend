@@ -44,6 +44,12 @@ export class CreateProjectDto {
   address: string;
 
   @Type(() => Number)
+  @ApiProperty({ example: 0 })
+  @IsNumber()
+  @IsOptional()
+  funding?: number;
+
+  @Type(() => Number)
   @ApiProperty({ example: 100000 })
   @IsNumber()
   @IsNotEmpty()
@@ -72,7 +78,8 @@ export class CreateProjectDto {
   @ApiProperty({ enum: ProjectPhaseEnum, enumName: 'ProjectPhase' })
   @IsOptional()
   @IsEnum(ProjectPhaseEnum, {
-    message: 'Phase must be one of: DONATING, VOLUNTEERING, PENDING, ONGOING, COMPLETED',
+    message:
+      'Phase must be one of: DONATING, VOLUNTEERING, PENDING, ONGOING, COMPLETED',
   })
   phase?: ProjectPhaseEnum;
 

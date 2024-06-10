@@ -1,6 +1,6 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { CreateProjectDto } from './create-project.dto';
-import { Type } from 'class-transformer';
+import { plainToInstance, Transform, Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsOptional,
@@ -21,5 +21,13 @@ export class UpdateProjectDto extends PartialType(CreateProjectDto) {
   @Type(() => ProjectDonationDto)
   @IsOptional()
   @ValidateNested({ each: true })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return JSON.parse(value).map((item: any) =>
+        plainToInstance(ProjectDonationDto, item),
+      );
+    }
+    return value;
+  })
   donation?: ProjectDonationDto | null;
 }
