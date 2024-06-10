@@ -8,6 +8,7 @@ import { FirebaseModule } from 'nestjs-firebase';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { CacheModule } from '@nestjs/cache-manager';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     UsersModule,
     AuthModule,
     ProjectsModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],
