@@ -9,8 +9,12 @@ import { Exclude } from 'class-transformer';
 import { UserEntity } from 'src/users/entities/user.entity';
 
 export class ProjectEntity implements Project {
-  constructor(partial: Partial<ProjectEntity>) {
-    Object.assign(this, partial);
+  constructor({ organizer, ...data }: Partial<ProjectEntity>) {
+    Object.assign(this, data);
+
+    if (organizer) {
+      this.organizer = new UserEntity(organizer);
+    }
   }
 
   @ApiProperty()

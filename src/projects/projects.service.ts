@@ -96,6 +96,7 @@ export class ProjectsService {
   findProjectsByOrganizer(id: string) {
     return this.prisma.project.findMany({
       where: { organizerId: id },
+      include: { organizer: true },
     });
   }
 

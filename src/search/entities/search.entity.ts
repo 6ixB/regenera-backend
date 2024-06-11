@@ -1,3 +1,5 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { ProjectEntity } from 'src/projects/entities/project.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 
 export class SearchEntity {
@@ -9,5 +11,15 @@ export class SearchEntity {
     }
   }
 
+  @ApiProperty()
   users: UserEntity[];
+
+  @ApiProperty()
+  usersTotal: number;
+
+  @ApiProperty()
+  projects: ProjectEntity[];
+
+  @ApiProperty()
+  projectsTotal: number;
 }
