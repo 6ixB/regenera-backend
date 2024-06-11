@@ -5,11 +5,8 @@ import { faker } from '@faker-js/faker';
 import { ProjectsService } from 'src/projects/projects.service';
 import { UsersService } from 'src/users/users.service';
 import { PrismaService } from 'nestjs-prisma';
-import { UpdateProjectDto } from 'src/projects/dto/update-project.dto';
-import {
-  CreateProjectDto,
-  ProjectPhaseEnum,
-} from 'src/projects/dto/create-project.dto';
+import { ProjectPhaseEnum } from 'src/projects/dto/create-project.dto';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 const projectTitles = [
   'Cleaning Binus Anggrek',
@@ -126,9 +123,14 @@ export class SeedsService {
   }
 
   async seedProjects(num: number) {
-    const donateProjects = await this.seedDonateProjects(num / 3);
-    const volunteerProjects = await this.seedVolunteerProjects(num / 3);
-    const pendingProjects = await this.seedPendingProjects(num / 3);
+    const allUsers = await this.prisma.user.findMany();
+
+    const donateProjects = await this.seedDonateProjects(num / 3, allUsers);
+    const volunteerProjects = await this.seedVolunteerProjects(
+      num / 3,
+      allUsers,
+    );
+    const pendingProjects = await this.seedPendingProjects(num / 3, allUsers);
 
     const allProjects = [
       ...donateProjects,
@@ -141,10 +143,12 @@ export class SeedsService {
     return allProjects;
   }
 
-  async seedDonateProjects(num: number) {
+  async seedDonateProjects(num: number, allUsers: UserEntity[]) {
     const createdProjects = [];
 
     for (let i = 0; i < num; i++) {
+      const organizer = allUsers[Math.floor(Math.random() * allUsers.length)];
+
       const fundingGoalDeadline = faker.date.future();
       const volunteerGoalDeadline = new Date(fundingGoalDeadline);
       volunteerGoalDeadline.setDate(fundingGoalDeadline.getDate() + 7);
@@ -190,13 +194,15 @@ export class SeedsService {
             ],
           },
           organizer: {
-            connect: { id: (await this.prisma.user.findFirst()).id },
+            connect: { id: organizer.id },
           },
         },
       });
 
       for (let j = 0; j < extraDonor; j++) {
-        const userId = (await this.prisma.user.findFirst()).id;
+        const randomUser =
+          allUsers[Math.floor(Math.random() * allUsers.length)];
+        const userId = randomUser.id;
         const createProjectDto = { ...project };
         const updateProjectDto = {
           ...createProjectDto,
@@ -215,15 +221,15 @@ export class SeedsService {
     return createdProjects;
   }
 
-  async seedVolunteerProjects(num: number) {
+  async seedVolunteerProjects(num: number, allUsers: UserEntity[]) {
     const createdProjects = [];
 
     for (let i = 0; i < num; i++) {
-      const fundingGoalDeadline = faker.date.past();
-      fundingGoalDeadline.setDate(fundingGoalDeadline.getDate() - 14);
+      const organizer = allUsers[Math.floor(Math.random() * allUsers.length)];
 
-      const volunteerGoalDeadline = new Date(fundingGoalDeadline);
-      volunteerGoalDeadline.setDate(fundingGoalDeadline.getDate() + 7);
+      const fundingGoalDeadline = faker.date.past();
+
+      const volunteerGoalDeadline = faker.date.future();
 
       const fundingGoal = faker.number.int({ min: 100000, max: 10000000 });
       const totalDonors = faker.number.int({ min: 1, max: 20 });
@@ -273,13 +279,15 @@ export class SeedsService {
             ],
           },
           organizer: {
-            connect: { id: (await this.prisma.user.findFirst()).id },
+            connect: { id: organizer.id },
           },
         },
       });
 
       for (let j = 0; j < totalDonors + extraDonor; j++) {
-        const userId = (await this.prisma.user.findFirst()).id;
+        const randomUser =
+          allUsers[Math.floor(Math.random() * allUsers.length)];
+        const userId = randomUser.id;
         const createProjectDto = { ...project };
         const updateProjectDto = {
           ...createProjectDto,
@@ -313,10 +321,12 @@ export class SeedsService {
     return createdProjects;
   }
 
-  async seedPendingProjects(num: number) {
+  async seedPendingProjects(num: number, allUsers: UserEntity[]) {
     const createdProjects = [];
 
     for (let i = 0; i < num; i++) {
+      const organizer = allUsers[Math.floor(Math.random() * allUsers.length)];
+
       const fundingGoalDeadline = faker.date.past();
       const volunteerGoalDeadline = faker.date.past();
 
@@ -367,13 +377,15 @@ export class SeedsService {
             ],
           },
           organizer: {
-            connect: { id: (await this.prisma.user.findFirst()).id },
+            connect: { id: organizer.id },
           },
         },
       });
 
       for (let j = 0; j < totalDonors + extraDonor; j++) {
-        const userId = (await this.prisma.user.findFirst()).id;
+        const randomUser =
+          allUsers[Math.floor(Math.random() * allUsers.length)];
+        const userId = randomUser.id;
         const createProjectDto = { ...project };
         const updateProjectDto = {
           ...createProjectDto,
