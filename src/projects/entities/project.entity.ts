@@ -44,6 +44,9 @@ export class ProjectEntity implements Project {
   @ApiProperty()
   volunteerGoalDeadline: Date;
 
+  @ApiProperty({ required: false, nullable: true })
+  meetupDate: Date | null;
+
   @ApiProperty()
   funding: number;
 
@@ -75,5 +78,11 @@ export class ProjectEntity implements Project {
   volunteers: UserEntity;
 
   @ApiProperty()
-  donators: ProjectDonation;
+  donations: ProjectDonation;
+
+  @ApiProperty({ required: false, nullable: true })
+  donationsCount?: number;
+
+  @ApiProperty({ required: false, nullable: true })
+  volunteersCount?: number;
 }

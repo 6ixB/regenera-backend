@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   ValidationPipe,
   UploadedFiles,
+  Logger,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -26,6 +27,7 @@ import { ProjectEntity } from './entities/project.entity';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { UserEntity } from 'src/users/entities/user.entity';
+import { ProjectDonationDto } from './dto/project-donation.dto';
 
 @Controller('projects')
 @ApiTags('projects')
@@ -75,6 +77,17 @@ export class ProjectsController {
     return projects;
   }
 
+  @Get('/popular')
+  @ApiOkResponse({ type: ProjectEntity, isArray: true })
+  async findPopularProjects() {
+    const projects = await this.projectsService.findPopularProjects();
+    projects.map((project) => {
+      project.organizer = new UserEntity(project.organizer);
+    });
+
+    return projects;
+  }
+
   @Get(':id')
   @ApiOkResponse({ type: ProjectEntity })
   async findOne(@Param('id') id: string) {
@@ -108,11 +121,33 @@ export class ProjectsController {
     return this.projectsService.findProjectsByDonator(id);
   }
 
+  @Get('top-donations/:id')
+  @ApiOkResponse({ type: ProjectDonationDto })
+  async findProjectsTopDonations(@Param('id') id: string) {
+    return this.projectsService.findProjectTopDonations(id);
+  }
+
   @Patch(':id')
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'submissionImages' }]))
   @ApiCreatedResponse({ type: ProjectEntity })
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: UpdateProjectDto,
+  })
+  async update(
+    @Param('id') id: string,
+    @Body(new ValidationPipe({ transform: true }))
+    updateProjectDto: UpdateProjectDto,
+    @UploadedFiles()
+    files: {
+      submissionImages?: Express.Multer.File[];
+    },
+  ) {
+    if (files?.submissionImages) {
+      updateProjectDto.submissionImages = files.submissionImages;
+    }
     return this.projectsService.update(id, updateProjectDto);
   }
 
