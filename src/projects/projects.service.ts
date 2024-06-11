@@ -44,6 +44,7 @@ export class ProjectsService {
         title: createProjectDto.title,
         description: createProjectDto.description,
         imageUrl: createProjectDto.image,
+        address: createProjectDto.address,
         fundingGoal: createProjectDto.fundingGoal,
         fundingGoalDeadline: createProjectDto.fundingGoalDeadline,
         volunteerGoal: createProjectDto.volunteerGoal,
