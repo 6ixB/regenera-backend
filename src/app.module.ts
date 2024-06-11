@@ -11,6 +11,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { ChatRoomModule } from './chat-room/chat-room.module';
 import { ChatModule } from './chat/chat.module';
 import { ChatRoomRelationModule } from './chat-room-relation/chat-room-relation.module';
+import { SeedsModule } from './seeds/seeds.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ChatRoomRelationModule } from './chat-room-relation/chat-room-relation.
     ChatRoomModule,
     ChatModule,
     ChatRoomRelationModule,
+    SeedsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

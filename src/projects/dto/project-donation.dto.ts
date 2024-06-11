@@ -3,6 +3,10 @@ import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
 export class ProjectDonationDto {
+  constructor(amount: number, donatorId: string) {
+    this.amount = amount;
+    this.donatorId = donatorId;
+  }
   @ApiProperty()
   @Type(() => String)
   @IsString()
