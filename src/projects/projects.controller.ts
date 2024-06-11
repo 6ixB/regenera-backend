@@ -77,6 +77,17 @@ export class ProjectsController {
     return projects;
   }
 
+  @Get('/popular')
+  @ApiOkResponse({ type: ProjectEntity, isArray: true })
+  async findPopularProjects() {
+    const projects = await this.projectsService.findPopularProjects();
+    projects.map((project) => {
+      project.organizer = new UserEntity(project.organizer);
+    });
+
+    return projects;
+  }
+
   @Get(':id')
   @ApiOkResponse({ type: ProjectEntity })
   async findOne(@Param('id') id: string) {

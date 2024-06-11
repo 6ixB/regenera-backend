@@ -141,6 +141,30 @@ export class ProjectsService {
       });
   }
 
+  findPopularProjects() {
+    return this.prisma.project
+      .findMany({
+        include: {
+          organizer: true,
+          _count: {
+            select: { volunteers: true, donations: true },
+          },
+        },
+        take: 5,
+        orderBy: [
+          { donations: { _count: 'desc' } },
+          { volunteers: { _count: 'desc' } },
+        ],
+      })
+      .then((projects) => {
+        return projects.map((project) => ({
+          ...project,
+          donationsCount: project._count.donations,
+          volunteersCount: project._count.volunteers,
+        }));
+      });
+  }
+
   findProjectsByOrganizer(id: string) {
     return this.prisma.project
       .findMany({
