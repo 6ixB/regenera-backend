@@ -85,9 +85,12 @@ export class SeedsService {
     const userCreationPromises = [];
 
     for (let i = 0; i < num; i++) {
+      const username = faker.internet.userName();
+      const email = `${username}@example.com`;
+
       const createUserPromise = await this.userService.create({
-        username: faker.internet.userName(),
-        email: faker.internet.email(),
+        username: username,
+        email: email,
         password: 'dummy123',
         rating: faker.number.float({ min: 20, max: 20100 }),
       });
