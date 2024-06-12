@@ -395,12 +395,13 @@ export class ProjectsService {
       }
     });
 
+
     const submissionImageUrls = await Promise.all(
-      submissionObjectiveIds.map((objectiveId, idx) => {
+      submissionImages.map((image, idx) => {
         return this.uploadProjectSubmissionImage(
           projectId,
-          objectiveId,
-          submissionImages[idx],
+          submissionObjectiveIds[idx],
+          image,
         );
       }),
     );
@@ -433,9 +434,10 @@ export class ProjectsService {
 
   async uploadProjectSubmissionImage(
     projectId: string,
-    objectiveId,
+    objectiveId: string,
     file: Express.Multer.File,
   ) {
+
     const fileName = `projects/${projectId}/objectives/${objectiveId}/submission/${uuidv4()}.${file.mimetype.replace('image/', '')}`;
 
     await this.firebase.storage
