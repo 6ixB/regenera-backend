@@ -65,5 +65,5 @@ export class UpdateProjectDto extends PartialType(CreateProjectDto) {
 
   @ApiProperty({ type: 'string', format: 'binary', isArray: true })
   @IsOptional()
-  submissionImages: any;
+  submissionImages?: any;
 }

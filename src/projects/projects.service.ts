@@ -276,9 +276,9 @@ export class ProjectsService {
     }
 
     if (
-      updateProjectDto.submissionObjectiveIds &&
-      updateProjectDto.submissionSubmitterIds &&
-      updateProjectDto.submissionImages
+      updateProjectDto?.submissionObjectiveIds &&
+      updateProjectDto?.submissionSubmitterIds &&
+      updateProjectDto?.submissionImages
     ) {
       return this.updateProjectSubmission(
         id,

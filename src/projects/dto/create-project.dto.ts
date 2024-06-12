@@ -81,7 +81,7 @@ export class CreateProjectDto {
     message:
       'Phase must be one of: DONATING, VOLUNTEERING, PENDING, ONGOING, COMPLETED',
   })
-  phase?: ProjectPhaseEnum;
+  phase?: ProjectPhaseEnum | string;
 
   @Type(() => String)
   @ApiProperty({ example: 'organizer123' })
