@@ -54,6 +54,23 @@ export class UsersService {
     return this.prisma.user.findMany();
   }
 
+  async findAllByRating(page: number, limit: number) {
+    const users = await this.prisma.user.findMany({
+      where: { rating: { not: null } },
+      take: 10,
+      skip: (page - 1) * limit,
+      orderBy: {
+        rating: 'desc',
+      },
+    });
+
+    const usersTotal = await this.prisma.user.count({
+      where: { rating: { not: null } },
+    });
+
+    return { users, usersTotal };
+  }
+
   findOne(id: string) {
     return this.prisma.user.findUnique({ where: { id } });
   }

@@ -89,6 +89,7 @@ export class SeedsService {
         username: faker.internet.userName(),
         email: faker.internet.email(),
         password: 'dummy123',
+        rating: faker.number.float({ min: 20, max: 20100 }),
       });
 
       userCreationPromises.push(createUserPromise);

@@ -10,7 +10,7 @@ import {
   UseInterceptors,
   ValidationPipe,
   UploadedFiles,
-  Logger,
+  Query,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -67,14 +67,24 @@ export class ProjectsController {
   }
 
   @Get()
-  @ApiOkResponse({ type: ProjectEntity, isArray: true })
-  async findAll() {
-    const projects = await this.projectsService.findAll();
+  @ApiOkResponse()
+  async findAll(@Query('page') page: number, @Query('limit') limit: number) {
+    const { projects, projectsTotal } = await this.projectsService.findAll(
+      page,
+      limit,
+    );
+
     projects.map((project) => {
       project.organizer = new UserEntity(project.organizer);
     });
 
-    return projects;
+    const projectEntities = projects.map(
+      (project) => new ProjectEntity(project),
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    return { projects: projectEntities, projectsTotal };
   }
 
   @Get('/popular')
@@ -85,7 +95,27 @@ export class ProjectsController {
       project.organizer = new UserEntity(project.organizer);
     });
 
-    return projects;
+    const projectEntities = projects.map(
+      (project) => new ProjectEntity(project),
+    );
+
+    return projectEntities;
+  }
+
+  @Get('/latest')
+  @ApiOkResponse({ type: ProjectEntity, isArray: true })
+  async findLatestProjects() {
+    const projects = await this.projectsService.findLatestProjects();
+
+    projects.map((project) => {
+      project.organizer = new UserEntity(project.organizer);
+    });
+
+    const projectEntities = projects.map(
+      (project) => new ProjectEntity(project),
+    );
+
+    return projectEntities;
   }
 
   @Get(':id')
