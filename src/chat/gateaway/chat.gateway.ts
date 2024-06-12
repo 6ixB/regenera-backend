@@ -1,7 +1,7 @@
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { UseInterceptors, UploadedFiles, Logger } from '@nestjs/common';
 import { ChatService } from '../chat.service';
 import { CreateChatDto } from '../dto/create-chat.dto';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -11,6 +11,7 @@ import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
   cors: {
     origin: '*',
   },
+  
 })
 
 @ApiTags('chat-websocket')
@@ -20,27 +21,28 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(private readonly chatService: ChatService) {}
 
+  private clients: Set<Socket> = new Set();
+
   handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
+    this.clients.add(client)
+  
   }
 
   handleDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
+    this.clients.delete(client)
   }
 
   @SubscribeMessage('sendMessage')
   @ApiOperation({ summary: 'Send a message' })
   @ApiBody({ type: CreateChatDto })
-  @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'image', maxCount: 1 }
-    ]),
-  )
-  async handleSendMessage(@MessageBody() message: CreateChatDto, @ConnectedSocket() client: Socket, @UploadedFiles() files: { image?: Express.Multer.File[] }): Promise<void> {
-    if (files.image) {
-      message.image = files.image[0];
-    }
-
+  // @UseInterceptors(
+  //   FileFieldsInterceptor([
+  //     { name: 'image', maxCount: 1 }
+  //   ]),
+  // )
+  async handleSendMessage(@MessageBody() message: CreateChatDto, @ConnectedSocket() client: Socket): Promise<void> {
     const chat = await this.chatService.create(message);
     this.server.to(message.chatRoomId).emit('message', chat);
   }
@@ -66,6 +68,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @ApiBody({ type: Object, description: 'Contains chatRoomId' })
   async handleGetChatsInRoom(@MessageBody() data: any, @ConnectedSocket() client: Socket): Promise<void> {
     const chats = await this.chatService.findAllByChatRoomId(data.chatRoomId);
+    console.log(chats)
     client.emit('chatsInRoom', chats);
   }
 }
