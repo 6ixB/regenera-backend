@@ -12,6 +12,7 @@ import {
   UploadedFile,
   ParseFilePipeBuilder,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -50,6 +51,20 @@ export class UsersController {
   async findAll() {
     const users = await this.usersService.findAll();
     return users.map((user) => new UserEntity(user));
+  }
+
+  @Get('leaderboard')
+  @ApiOkResponse({ type: UserEntity, isArray: true })
+  async findAllByRating(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    const { users, usersTotal } = await this.usersService.findAllByRating(
+      page,
+      limit,
+    );
+    const userEntities = users.map((user) => new UserEntity(user));
+    return { userEntities, usersTotal };
   }
 
   @Get(':id')

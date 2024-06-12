@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 import { TransformEmptyStringToNull } from 'src/common/transformers/empty-string-to-null.transformer';
 
 export class CreateUserDto {
@@ -23,4 +23,9 @@ export class CreateUserDto {
   @TransformEmptyStringToNull()
   @ApiProperty({ type: () => String, required: false, nullable: true })
   password?: string;
+
+  @Type(() => Number)
+  @IsOptional()
+  @ApiProperty()
+  rating?: number | null;
 }

@@ -65,8 +65,8 @@ export class ProjectsService {
     });
   }
 
-  findAll() {
-    return this.prisma.project
+  async findAll(page: number, limit: number) {
+    const projects = await this.prisma.project
       .findMany({
         include: {
           organizer: true,
@@ -77,6 +77,8 @@ export class ProjectsService {
             },
           },
         },
+        take: limit,
+        skip: (page - 1) * limit,
       })
       .then((projects) => {
         return projects.map((project) => ({
@@ -86,6 +88,10 @@ export class ProjectsService {
           _count: undefined,
         }));
       });
+
+    const projectsTotal = await this.prisma.project.count();
+
+    return { projects, projectsTotal };
   }
 
   findOne(id: string) {
@@ -156,6 +162,27 @@ export class ProjectsService {
           { donations: { _count: 'desc' } },
           { volunteers: { _count: 'desc' } },
         ],
+      })
+      .then((projects) => {
+        return projects.map((project) => ({
+          ...project,
+          donationsCount: project._count.donations,
+          volunteersCount: project._count.volunteers,
+        }));
+      });
+  }
+
+  findLatestProjects() {
+    return this.prisma.project
+      .findMany({
+        include: {
+          organizer: true,
+          _count: {
+            select: { volunteers: true, donations: true },
+          },
+        },
+        take: 3,
+        orderBy: { createdAt: 'desc' },
       })
       .then((projects) => {
         return projects.map((project) => ({
