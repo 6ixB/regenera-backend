@@ -60,11 +60,11 @@ export class AuthService {
       currentDate.getTime() + accessTokenTimeToLive,
     );
 
-    this.cacheManager.set(
-      `access-token-${userId}`,
-      accessToken,
-      accessTokenTimeToLive,
-    );
+    // this.cacheManager.set(
+    //   `access-token-${userId}`,
+    //   accessToken,
+    //   accessTokenTimeToLive,
+    // );
 
     return {
       accessToken,
@@ -168,7 +168,7 @@ export class AuthService {
   }
 
   async signout(userId: string) {
-    this.cacheManager.del(`access-token-${userId}`);
+    // this.cacheManager.del(`access-token-${userId}`);
     return this.usersService.update(userId, { refreshToken: null });
   }
 }

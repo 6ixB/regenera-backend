@@ -8,6 +8,7 @@ import { FirebaseModule } from 'nestjs-firebase';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { CacheModule } from '@nestjs/cache-manager';
+import { SearchModule } from './search/search.module';
 import { ChatRoomModule } from './chat-room/chat-room.module';
 import { ChatModule } from './chat/chat.module';
 import { ChatRoomRelationModule } from './chat-room-relation/chat-room-relation.module';
@@ -25,6 +26,7 @@ import { SeedsModule } from './seeds/seeds.module';
     UsersModule,
     AuthModule,
     ProjectsModule,
+    SearchModule,
     ChatRoomModule,
     ChatModule,
     ChatRoomRelationModule,
